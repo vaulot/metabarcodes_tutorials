@@ -1,0 +1,2 @@
+#Type	Sequence	Sequence	Name
+primer	CCAGCASCYGCGGTAATTCC	ACTTTCGTTCTTGATYRA	V4_Euks

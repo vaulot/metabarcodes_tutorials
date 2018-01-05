@@ -1,0 +1,2 @@
+#Type	Sequence	Sequence	Name
+primer	CCAGCASCYGCGGTAATTCC	CTTCGAGCCCCCAACTTTC	V4_Chlo
