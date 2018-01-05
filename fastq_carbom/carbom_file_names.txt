@@ -1,0 +1,14 @@
+120p	120p_S39_R1.subsample.fastq	120p_S39_R2.subsample.fastq
+121p	121p_S57_R1.subsample.fastq	121p_S57_R2.subsample.fastq
+122p	122p_S4_R1.subsample.fastq	122p_S4_R2.subsample.fastq
+125p	125p_S22_R1.subsample.fastq	125p_S22_R2.subsample.fastq
+126p	126p_S40_R1.subsample.fastq	126p_S40_R2.subsample.fastq
+140p	140p_S5_R1.subsample.fastq	140p_S5_R2.subsample.fastq
+141p	141p_S23_R1.subsample.fastq	141p_S23_R2.subsample.fastq
+142p	142p_S41_R1.subsample.fastq	142p_S41_R2.subsample.fastq
+155p	155p_S59_R1.subsample.fastq	155p_S59_R2.subsample.fastq
+156p	156p_S6_R1.subsample.fastq	156p_S6_R2.subsample.fastq
+157p	157p_S24_R1.subsample.fastq	157p_S24_R2.subsample.fastq
+165p	165p_S42_R1.subsample.fastq	165p_S42_R2.subsample.fastq
+166p	166p_S60_R1.subsample.fastq	166p_S60_R2.subsample.fastq
+167p	167p_S7_R1.subsample.fastq	167p_S7_R2.subsample.fastq
