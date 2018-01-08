@@ -1,0 +1,87 @@
+# Change the paths below to the path where you have downloaded the different files
+
+SET FILE_PR2_TAX="C:\Users\vaulot\Google Drive\Scripts\metabarcodes tutorials\databases\pr2_version_4.72_mothur.tax"
+SET FILE_PR2_FASTA="C:\Users\vaulot\Google Drive\Scripts\metabarcodes tutorials\databases\pr2_version_4.72_mothur.fasta"
+SET FILE_SILVA="/projet/umr7144/dipo/vaulot/mothur/database/silva_128/silva.seed_v128.euk.V4.corrected.zingone.unique.align"
+
+
+SET DIR_DATA="C:\Users\vaulot\Google Drive\Scripts\metabarcodes tutorials\fastq_carbom"
+
+SET MOTHUR="C:\Program Files (x86)\mothur\mothur.exe"
+
+# Change directory where the data are
+CD %DIR_DATA%
+
+# Launch mothur
+%MOTHUR%
+
+make.contigs(file=carbom.txt, processors=32)
+
+screen.seqs(fasta=carbom.trim.contigs.fasta,group=carbom.contigs.groups,maxambig=0,minlength=350, maxlength=450, processors=32)
+count.groups(group = carbom.contigs.good.groups)
+
+pcr.seqs(fasta=carbom.trim.contigs.good.fasta, group=carbom.contigs.good.groups, oligos=oligos18s_V4_Zingone.oligos, pdiffs=2, rdiffs=2, processors=32)
+count.groups(group=carbom.contigs.good.pcr.groups)
+
+# Do at the DOS level
+rename carbom.trim.contigs.good.pcr.fasta carbom_18S.fasta
+rename carbom.contigs.good.pcr.groups carbom_18S.groups
+
+$MOTHUR "#unique.seqs(fasta=$PROJECT_18S.fasta)"
+
+$MOTHUR "#summary.seqs(fasta=$PROJECT_18S.unique.fasta, processors=32)"
+
+$MOTHUR "#count.seqs(name=$PROJECT_18S.names, group=$PROJECT_18S.groups, processors=32)"
+
+$MOTHUR "#count.groups(count=$PROJECT_18S.count_table)"
+
+$MOTHUR "#split.abund(count=$PROJECT_18S.count_table, fasta=$PROJECT_18S.unique.fasta, cutoff=1, accnos=true)"
+
+$MOTHUR "#count.groups(count=$PROJECT_18S.abund.count_table)"
+
+wc -l $PROJECT_18S.unique.abund.fasta
+
+
+$MOTHUR "#align.seqs(fasta=$PROJECT_18S.unique.abund.fasta, reference=$FILE_SILVA, flip=T, processors=32)"
+
+head -500 $PROJECT_18S.unique.abund.align > $PROJECT_18S.unique.abund.align.extract
+
+$MOTHUR "#filter.seqs(fasta=$PROJECT_18S.unique.abund.align, processors=32)"
+
+head -500 $PROJECT_18S.unique.abund.filter.fasta > $PROJECT_18S.unique.abund.filter.fasta.extract
+
+$MOTHUR "#pre.cluster(fasta=$PROJECT_18S.unique.abund.filter.fasta, count=$PROJECT_18S.abund.count_table, diffs=2, processors=32)"
+
+$MOTHUR "#summary.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta, processors=32)"
+
+$MOTHUR "#chimera.uchime(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta, count=$PROJECT_18S.unique.abund.filter.precluster.count_table, processors=32)"
+
+$MOTHUR "#remove.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta, accnos=$PROJECT_18S.unique.abund.filter.precluster.denovo.uchime.accnos, count=$PROJECT_18S.unique.abund.filter.precluster.count_table)"
+
+$MOTHUR "#summary.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.pick.fasta)"
+
+$MOTHUR "#count.groups(count=$PROJECT_18S.unique.abund.filter.precluster.pick.count_table)"
+
+$MOTHUR "#split.abund(count=$PROJECT_18S.unique.abund.filter.precluster.pick.count_table, fasta=$PROJECT_18S.unique.abund.filter.precluster.pick.fasta, cutoff=10, accnos=true)"
+
+$MOTHUR "#screen.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.pick.abund.fasta, count=$PROJECT_18S.unique.abund.filter.precluster.pick.abund.count_table, minlength=200, processors=32)"
+
+cp $PROJECT_18S.unique.abund.filter.precluster.pick.abund.good.fasta        $PROJECT_18S.uniq.preclust.no_chim.more_than_10.fasta
+cp $PROJECT_18S.unique.abund.filter.precluster.pick.abund.good.count_table $PROJECT_18S.uniq.preclust.no_chim.more_than_10.count_table
+
+$MOTHUR "#summary.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.fasta)"
+
+$MOTHUR "#count.groups(count=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.count_table)"
+
+$MOTHUR "#classify.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.fasta, count=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.count_table, reference=$FILE_PR2.fasta, taxonomy=$FILE_PR2.tax, processors=32, probs=T)"
+
+$MOTHUR "#dist.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.fasta, processors=32)"
+
+$MOTHUR "#cluster(column=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.dist, count=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.count_table, cutoff=0.02, processors=32)"
+
+cd $DIR"/mothur"
+$MOTHUR "#classify.otu(taxonomy=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.$FILE_PR2_END.wang.taxonomy, count=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.count_table, list=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.opti_mcc.list, label=0.02, probs=F, basis=sequence)"
+
+$MOTHUR "#get.oturep(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.fasta, column=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.dist, count=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.count_table, list=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.opti_mcc.list, method=abundance, cutoff=0.02)"
+
+$MOTHUR "#create.database(list=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.opti_mcc.list, count=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.opti_mcc.0.02.rep.count_table, label=0.02, repfasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.opti_mcc.0.02.rep.fasta , constaxonomy=$PROJECT_18S.uniq.preclust.no_chim.more_than_10.opti_mcc.0.02.cons.taxonomy)"

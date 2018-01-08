@@ -1,0 +1,15 @@
+n_seq	file_name
+1000	120p_S39_R1.subsample.fastq
+1000	121p_S57_R1.subsample.fastq
+1000	122p_S4_R1.subsample.fastq
+1000	125p_S22_R1.subsample.fastq
+1000	126p_S40_R1.subsample.fastq
+1000	140p_S5_R1.subsample.fastq
+1000	141p_S23_R1.subsample.fastq
+1000	142p_S41_R1.subsample.fastq
+1000	155p_S59_R1.subsample.fastq
+1000	156p_S6_R1.subsample.fastq
+1000	157p_S24_R1.subsample.fastq
+1000	165p_S42_R1.subsample.fastq
+1000	166p_S60_R1.subsample.fastq
+1000	167p_S7_R1.subsample.fastq
