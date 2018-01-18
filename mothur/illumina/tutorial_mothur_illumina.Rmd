@@ -2,6 +2,8 @@
 title: "Mothur Illumina Tutorial"
 author: "Daniel Vaulot"
 date: "17 janvier 2018"
+header-includes:
+   - \usepackage{color, fancyvrb}
 output:
   pdf_document: 
     toc: yes
@@ -10,13 +12,21 @@ output:
 
 ---
 
+\RecustomVerbatimEnvironment
+  {Verbatim}{Verbatim}
+  {xleftmargin=5mm, frame=single,formatcom=\color{blue}, fontsize=\small}
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Aim of tutorial
 
-This tutorial explain how to process Illumina sequences using mothur.  The first part of the tutorial makes use of R to obtain information on the number and quality of sequences.
+This tutorial explain how to process Illumina sequences.  
+
+* The first part of the tutorial makes use of R to obtain information on the number and quality of sequences.
+* The second part uses mothur to process the sequences and compute the final abundance table.
+
 
 # Prerequisites
 
@@ -53,6 +63,7 @@ biocLite('dada2')             # metabarcode data analysis
 The samples originate from the CARBOM cruise (2013) off Brazil.  
 
 Samples have been sorted by flow cytometry and 3 genes have been PCR amplified :  
+
 * 18S rRNA - V4 region
 * 16S rNA with plastid
 * nifH
@@ -199,7 +210,8 @@ The major steps of the processing are :
 * Create a final file with all the information
 
 (@) **First define a few constants to make the script independant of the files**
-```{console}
+
+\begin{Verbatim}
 # Change the DIR_DATA below to the path where you have downloaded the different files
 DIR_DATA=".... /metabarcodes_tutorials/fastq_carbom"
 
@@ -208,13 +220,14 @@ FILE_PR2_FASTA="../databases/pr2_version_4.72_mothur.fasta"
 FILE_SILVA="../databases/silva.seed_v123.euk.fasta"
 MOTHUR="mothur"
 PROJECT="carbom"
-``` 
+\end{Verbatim}  
 
 
 (@) **Change directory to where the fastq files are located**
-```{console}
+
+\begin{Verbatim}
 cd $DIR_DATA
-```  
+\end{Verbatim}  
 
 
 (@) **Make the contigs using the file $PROJECT.txt ( = carbom.txt).** 
@@ -227,9 +240,9 @@ This file has the following structure :
 | 121p | 121p_S57_R1.subsample.fastq | 121p_S57_R2.subsample.fastq | 
 | 122p | 122p_S4_R1.subsample.fastq | 122p_S4_R2.subsample.fastq | 
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#make.contigs(file=$PROJECT.txt, processors=32)"
-``` 
+\end{Verbatim} 
 
 
 (@) **Remove sequences that do not satisfy the following conditions:**
@@ -237,12 +250,12 @@ $MOTHUR "#make.contigs(file=$PROJECT.txt, processors=32)"
 * Number of ambiguities = 0
 * Minlength=350
 * Maxlength=450
-```{console}
+
+\begin{Verbatim}
 $MOTHUR "#screen.seqs(fasta=$PROJECT.trim.contigs.fasta,group=$PROJECT.contigs.groups,
                       maxambig=0,minlength=350, maxlength=450, processors=32)"
 
-
-``` 
+\end{Verbatim} 
 
 
 (@) **Extract the sequences based on the presence of forward and reverse primers**
@@ -255,27 +268,27 @@ $MOTHUR "#screen.seqs(fasta=$PROJECT.trim.contigs.fasta,group=$PROJECT.contigs.g
 |------|-----|---------|---------|
 | primer | CCAGCASCYGCGGTAATTCC | ACTTTCGTTCTTGATYRATGA | 18S_V4_Zingone |
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#pcr.seqs(fasta=$PROJECT.trim.contigs.good.fasta, 
                    group=$PROJECT.contigs.good.groups, 
                    oligos=oligos18s_V4_Zingone.oligos, 
                    pdiffs=2, rdiffs=2, 
                    processors=32)"
-``` 
+\end{Verbatim} 
 
 
 (@) **Shorten file names and indicate gene name**
 
-```{console}
+\begin{Verbatim}
 cp $PROJECT.trim.contigs.good.pcr.fasta $PROJECT_18S.fasta
 cp $PROJECT.contigs.good.pcr.groups $PROJECT_18S.groups
-```
+\end{Verbatim}
 
 (@) **Dereplicate unique sequences**
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#unique.seqs(fasta=$PROJECT_18S.fasta)"
-```
+\end{Verbatim}
 
 (@) **Create a count file**
 
@@ -291,52 +304,53 @@ M02439_22_000000000-AD0LA_1_1101_13893_1778	1	1	0	0	0	0
 
 This step saves disk space and speed up analysis
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#count.seqs(name=$PROJECT_18S.names, 
                      group=$PROJECT_18S.groups, processors=32)"
-```
+\end{Verbatim}
 
 (@) **Remove singletons**
 
 One can change the settings with the cutoff parameter.
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#split.abund(count=$PROJECT_18S.count_table, 
                       fasta=$PROJECT_18S.unique.fasta, 
                       cutoff=1, accnos=true)"
-```
+\end{Verbatim}
 
 (@) **Align sequences to reference alignement**
 
 The file to be used can be downloaded from the mothur web site : https://www.mothur.org/w/images/a/a4/Silva.seed_v128.tgz.  It is best to :  
-* extract only the eukaryotes using mothur command:`get.lineage(taxonomy=$SILVA.tax, taxon=Eukaryota, fasta=$SILVA.align`
+
+* extract only the eukaryotes using mothur command:`get.lineage(taxonomy=$SILVA.tax, taxon=Eukaryota, fasta=$SILVA.align)`
 * remove all the gaps that are common to all sequences with mothur command `filter.seqs` (see next line)
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#align.seqs(fasta=$PROJECT_18S.unique.abund.fasta, 
                      reference=$FILE_SILVA, 
                      flip=T, processors=32)"
-```
+\end{Verbatim}
 
 (@) **Remove all the gaps that are common to all sequences**
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#filter.seqs(fasta=$PROJECT_18S.unique.abund.align, processors=32)"
-```
+\end{Verbatim}
 
 (@) **Precluster the sequences**
 
 The number of differences taken into account can be changed. In general use `diffs=2`.  However if one does not want to make OTUS for example to look at fine genetic variation, it is necessary to remove this step.
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#pre.cluster(fasta=$PROJECT_18S.unique.abund.filter.fasta, 
                       count=$PROJECT_18S.abund.count_table, 
                       diffs=1, processors=32)"
-```
+\end{Verbatim}
 
 (@) **Remove chimeras**
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#chimera.uchime(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta,
                          count=$PROJECT_18S.unique.abund.filter.precluster.count_table, 
                          processors=32)"
@@ -344,103 +358,112 @@ $MOTHUR "#chimera.uchime(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta
 $MOTHUR "#remove.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta,
                       accnos=$PROJECT_18S.unique.abund.filter.precluster.denovo.uchime.accnos, 
                       count=$PROJECT_18S.unique.abund.filter.precluster.count_table)"
-```
+\end{Verbatim}
 
 (@) **Remove sequences in low abundance (here cutoff=2)**
 
 It is critical to remove the sequences in low abundance to speed up processing. In general use `cutoff = 10`.
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#split.abund(count=$PROJECT_18S.unique.abund.filter.precluster.pick.count_table,
                       fasta=$PROJECT_18S.unique.abund.filter.precluster.pick.fasta, 
                       cutoff=2, accnos=true)"
-```
+\end{Verbatim}
 
 (@) **Remove sequences that are too short or too long (here minlength=200)**
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#screen.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.pick.abund.fasta,
                       count=$PROJECT_18S.unique.abund.filter.precluster.pick.abund.count_table, 
                       minlength=200, processors=32)"
-```
+\end{Verbatim}
 
 (@) **Rename files to remember that sequences in low abundance where removed**
 
-```{console}
+\begin{Verbatim}
 cp $PROJECT_18S.unique.abund.filter.precluster.pick.abund.good.fasta        
    $PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta
 cp $PROJECT_18S.unique.abund.filter.precluster.pick.abund.good.count_table 
    $PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table
-```
+\end{Verbatim}
 
 (@) **Classify the sequences using the PR2 database**
 
 Two files are required  
+
 * pr2.fasta
 * pr2.taxo
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#classify.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta,
             count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table, 
             reference=$FILE_PR2.fasta, taxonomy=$FILE_PR2.tax, 
             processors=32, 
             probs=T)"
-```
+\end{Verbatim}
 
 (@) **Compute distance matrix**
 
 It is critical to have as few sequences as possible at this step because the computation time is proportionnal to the **square** of the number of sequences.
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#dist.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta, processors=32)"
-```
+\end{Verbatim}
 
 (@) **Cluster the sequences to create the OTUs**
 
 Here we use a 0.02 cutoff corresponding to 98% similarity.
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#cluster(column=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.dist,
                   count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table, 
                   cutoff=0.02, processors=32)"
-```
+\end{Verbatim}
 
 (@) **Classify the OTUs based on the classification of the sequences (see above)**
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#classify.otu(taxonomy=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.$FILE_PR2_END.wang.taxonomy,
                        count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table,
                        list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.list, 
                        label=0.02, probs=F, basis=sequence)"
-```
+\end{Verbatim}
 
 (@) **Get sequences represnetative of each OTU**
 
-```{console}
+\begin{Verbatim}
 $MOTHUR "#get.oturep(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta,
                      column=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.dist, 
                      count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table,
                      list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.list, 
                      method=abundance, 
                      cutoff=0.02)"
-```
+\end{Verbatim}
 
-(@) **The final result in a single file with all the information**
+(@) **Format the final result in a single synthetic file**
 
 * otu id
 * abundance in each sample
 * representative sequence
 * taxonomy
 
-
-```{console}
+\begin{Verbatim}
 $MOTHUR "#create.database(list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.list,
           count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.0.02.rep.count_table, 
           label=0.02, 
           repfasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.0.02.rep.fasta ,
           constaxonomy=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.0.02.cons.taxonomy)"
-```
+\end{Verbatim}
 
 \begin{center}
 \includegraphics[height=300px]{carbom_database}
 \end{center}
+
+# What is next ?
+
+The database format can be easily used by the phyloseq package.  A short tutorial can be found here : https://github.com/vaulot/R_tutorials
+
+# Alternative strategies
+
+* Use the R dada2 package : https://f1000research.com/articles/5-1492/v2
+* Use vsearch : https://github.com/torognes/vsearch/wiki/VSEARCH-pipeline
