@@ -51,10 +51,10 @@
   # Change the following line to the path where you unzipped the tutorials
   tutorial_dir <- "C:/Users/vaulot/Google Drive/Scripts/"
 
-  working_dir <- paste0( tutorial_dir, "metabarcodes tutorials/mothur/illumina")
+  working_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/mothur/illumina")
   setwd(working_dir)
 
-  ngs_dir <- paste0( tutorial_dir, "metabarcodes tutorials/fastq_carbom")
+  ngs_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/fastq_carbom")
 
 
 # Number of paired reads ---------------------------------------------------------------

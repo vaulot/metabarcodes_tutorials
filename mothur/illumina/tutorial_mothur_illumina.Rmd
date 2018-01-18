@@ -1,0 +1,446 @@
+---
+title: "Mothur Illumina Tutorial"
+author: "Daniel Vaulot"
+date: "17 janvier 2018"
+output:
+  pdf_document: 
+    toc: yes
+    toc_depth: 1
+    number_sections : yes
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Aim of tutorial
+
+This tutorial explain how to process Illumina sequences using mothur.  The first part of the tutorial makes use of R to obtain information on the number and quality of sequences.
+
+# Prerequisites
+
+Install the following software :  
+
+* mothur : https://github.com/mothur/mothur/releases/tag/v1.39.5
+
+* PR2 database : https://github.com/vaulot/pr2_database/releases/download/4.7.2/pr2_version_4.7.2_mothur.zip . This file must be decompressed in the /databases directory
+
+* R : https://pbil.univ-lyon1.fr/CRAN/
+
+* R studio : https://www.rstudio.com/products/rstudio/download/#download
+
+* Download and install the following libraries by running under R studio the following lines
+
+```R
+install.packages("dplyr")     # To manipulate dataframes
+install.packages("stringr")   # To strings
+
+install.packages("ggplot2")   # for high quality graphics
+
+source("https://bioconductor.org/biocLite.R")
+biocLite("Biostrings")        # manipulate sequences
+biocLite('dada2')             # metabarcode data analysis
+
+```
+
+# Data used
+
+\begin{center}
+\includegraphics[height=200px]{../../fastq_carbom/carbom_cruise}
+\end{center}
+
+The samples originate from the CARBOM cruise (2013) off Brazil.  
+
+Samples have been sorted by flow cytometry and 3 genes have been PCR amplified :  
+* 18S rRNA - V4 region
+* 16S rNA with plastid
+* nifH
+
+The PCR products have been sequenced by 1 run of Illumina 2*250 bp.
+The data consist of the picoplankton samples from one transect and fastq files have been subsampled with 1000 sequences per sample.
+
+## References
+* Gérikas Ribeiro C, Marie D, Lopes dos Santos A, Pereira Brandini F, Vaulot D. (2016). Estimating microbial populations by flow cytometry: Comparison between instruments. Limnol Oceanogr Methods 14:750–758.
+* Gérikas Ribeiro C, Lopes dos Santos A, Marie D, Brandini P, Vaulot D. (2018). Relationships between photosynthetic eukaryotes and nitrogen-fixing cyanobacteria off Brazil. ISME J in press.
+* Gérikas Ribeiro C, Lopes dos Santos A, Marie D, Helena Pellizari V, Pereira Brandini F, Vaulot D. (2016). Pico and nanoplankton abundance and carbon stocks along the Brazilian Bight. PeerJ 4:e2587.
+
+# Directory structure
+
+* /fastq_carbom : fastq files from the carbom cruise
+* / databases : Silva alignement and PR2 database files (see Prerequisite above)
+* /mothur/illumina : Tutorial for Illumina files (carbom cruise)
+* /mothur/454 : Tutorial with 454 files
+
+# Pre visualization of the fastq files with R
+
+**Load the necessary libraries**
+
+```{r, results='hide', message=FALSE}
+  library("dada2")
+  library("Biostrings") # To manipulate DNA sequences
+  
+  library("ggplot2")
+  library("stringr")
+  library("dplyr")
+```
+
+(1) **Function to plot quality of Illumina files (dada2 library)**
+
+This function takes as input the path where the fastq files are stored. The plots are saved as pdf files and the subdirectory /qual/
+
+```{r}
+  fastq_qual_plot <- function(fastq_path) {
+
+  # List all the files in the directory fastq_path that have the extension .fastq
+   fns <- sort(list.files(fastq_path, full.names = TRUE)) 
+   fns <- fns[str_detect( basename(fns),".fastq")] 
+ 
+   for(i in 1:length(fns)) { 
+     p1 <- plotQualityProfile(fns[i]) + ggtitle(basename(fns[i]))
+     p1_file <- paste0(basename(fns[i]),".pdf")
+     ggsave( plot=p1, filename= paste0(fastq_path,"/qual/",p1_file), 
+              device = "pdf", width = 15, height = 15, scale=1, units="cm")
+    } 
+}
+
+```
+
+(2) **Function to compute number of sequences in fastq files**
+
+This function takes as input the path where the fastq files are stored. It saves a file with the number of sequences in each fastq file.
+
+```{r}
+  fastq_size <- function(fastq_path) {
+    
+   df <- data.frame()  
+   
+  # List all the files in the directory fastq_path
+   fns <- sort(list.files(fastq_path, full.names = TRUE)) 
+   
+  # Only consider files containing the R1 extension (the R2 file should have the same number of sequences)
+   fns <- fns[str_detect( basename(fns),"R1")]
+   
+   for(i in 1:length(fns)) { 
+     geom <- fastq.geometry(fns[i])
+     df_one_row <- data.frame (n_seq=geom[1], file_name=basename(fns[i]) )
+     df <- bind_rows(df, df_one_row)
+   } 
+   df
+  }
+```
+
+(3) **Set up the directories for the analysis**
+```{r}  
+  # Change the following line to the path where you unzipped the tutorials
+  tutorial_dir <- "C:/Users/vaulot/Google Drive/Scripts/"
+
+  working_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/mothur/illumina")
+  ngs_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/fastq_carbom")
+  
+  setwd(working_dir)
+```
+
+(4) **Compute number of paired reads in each fastq file**
+
+Note that the data have been sub-sampled at 1000 reads per file.
+```{r, message=FALSE, warning=FALSE}  
+# Call function that returns fastq file size
+  df <- fastq_size(ngs_dir)
+
+# Only keep the R1 files since R1 and R2 files have same length
+  df <- df %>% filter(str_detect(file_name,"R1") == TRUE)
+  df
+  
+# The following line writes a file with the data  
+#  write.table(df, file = paste0(working_dir,"/n_seq.txt"), sep="\t", row.names = FALSE, na="", quote=FALSE)
+  
+# Plot the histogram of the number of sequences per file
+  ggplot(df, aes(x=n_seq)) + 
+          geom_histogram( alpha = 0.5, position="identity", binwidth = 10) +
+           xlim(0, 2000)
+```
+
+(5) **Plot the quality fo each fastq file**
+```{r}  
+ # The script execute the following line
+   # fastq_qual_plot(ngs_dir)
+
+ # Here we just show one example of plot
+   fastq_file <- paste0(ngs_dir,"/120p_S39_R1.subsample.fastq")
+   plotQualityProfile(fastq_file) 
+```  
+
+(6) **Clean up memory**
+
+It is necessary to clean up the memory because the fastq files are quite big and occupy a lot of memory during processing
+```{r}
+  rm(list=ls())
+```  
+
+# Analysis with mothur
+
+Two files containing all the commands are provided  
+* mothur_carbom_linux.txt : use on a server (not tested on Mac)
+* mothur_carbom_windows.txt : use on windows
+
+Note that some of the steps have been removed for simplicity.
+
+The major steps of the processing are :  
+
+* Build the contigs from the R1 and R2 reads
+* Extract the sequences that contain the 2 primers
+* Remove sequences in low abundance (singletons in particular)
+* Align sequences to a reference alignment
+* Remove chimeras
+* Assign taxonomy based on PR2
+* Compute sequence distance
+* Cluster sequences at a given threhold (make OTUs)
+* Create a final file with all the information
+
+(@) **First define a few constants to make the script independant of the files**
+```{console}
+# Change the DIR_DATA below to the path where you have downloaded the different files
+DIR_DATA=".... /metabarcodes_tutorials/fastq_carbom"
+
+FILE_PR2_TAX="../databases/pr2_version_4.72_mothur.tax"
+FILE_PR2_FASTA="../databases/pr2_version_4.72_mothur.fasta"
+FILE_SILVA="../databases/silva.seed_v123.euk.fasta"
+MOTHUR="mothur"
+PROJECT="carbom"
+``` 
+
+
+(@) **Change directory to where the fastq files are located**
+```{console}
+cd $DIR_DATA
+```  
+
+
+(@) **Make the contigs using the file $PROJECT.txt ( = carbom.txt).** 
+
+This file has the following structure :
+
+| Sample | R1 file | R2 file |
+|------|-----|---------|
+| 120p | 120p_S39_R1.subsample.fastq | 120p_S39_R2.subsample.fastq |
+| 121p | 121p_S57_R1.subsample.fastq | 121p_S57_R2.subsample.fastq | 
+| 122p | 122p_S4_R1.subsample.fastq | 122p_S4_R2.subsample.fastq | 
+
+```{console}
+$MOTHUR "#make.contigs(file=$PROJECT.txt, processors=32)"
+``` 
+
+
+(@) **Remove sequences that do not satisfy the following conditions:**
+
+* Number of ambiguities = 0
+* Minlength=350
+* Maxlength=450
+```{console}
+$MOTHUR "#screen.seqs(fasta=$PROJECT.trim.contigs.fasta,group=$PROJECT.contigs.groups,
+                      maxambig=0,minlength=350, maxlength=450, processors=32)"
+
+
+``` 
+
+
+(@) **Extract the sequences based on the presence of forward and reverse primers**
+
+* Mismatches allowed on the forward primer - pdiffs=2, 
+* Mismatches allowed on the reverse primer - rdiffs=2
+* Oligo file : oligos18s_V4_Zingone.oligos
+
+| Keyword | Primer forward | Primer reverse | Name of primer |
+|------|-----|---------|---------|
+| primer | CCAGCASCYGCGGTAATTCC | ACTTTCGTTCTTGATYRATGA | 18S_V4_Zingone |
+
+```{console}
+$MOTHUR "#pcr.seqs(fasta=$PROJECT.trim.contigs.good.fasta, 
+                   group=$PROJECT.contigs.good.groups, 
+                   oligos=oligos18s_V4_Zingone.oligos, 
+                   pdiffs=2, rdiffs=2, 
+                   processors=32)"
+``` 
+
+
+(@) **Shorten file names and indicate gene name**
+
+```{console}
+cp $PROJECT.trim.contigs.good.pcr.fasta $PROJECT_18S.fasta
+cp $PROJECT.contigs.good.pcr.groups $PROJECT_18S.groups
+```
+
+(@) **Dereplicate unique sequences**
+
+```{console}
+$MOTHUR "#unique.seqs(fasta=$PROJECT_18S.fasta)"
+```
+
+(@) **Create a count file**
+
+This file create a table which as the following structure. For each unique sequence, it provides the total number of sequences and the number of sequences in each sample.
+
+\begin{verbatim}
+Representative_Sequence	total	120p	121p	122p	125p	126p
+M02439_22_000000000-AD0LA_1_1101_14247_1437	277	46	35	0	12	20
+M02439_22_000000000-AD0LA_1_1101_12787_1647	2	2	0	0	0	0
+M02439_22_000000000-AD0LA_1_1101_17899_1772	2	2	0	0	0	0
+M02439_22_000000000-AD0LA_1_1101_13893_1778	1	1	0	0	0	0
+\end{verbatim}
+
+This step saves disk space and speed up analysis
+
+```{console}
+$MOTHUR "#count.seqs(name=$PROJECT_18S.names, 
+                     group=$PROJECT_18S.groups, processors=32)"
+```
+
+(@) **Remove singletons**
+
+One can change the settings with the cutoff parameter.
+
+```{console}
+$MOTHUR "#split.abund(count=$PROJECT_18S.count_table, 
+                      fasta=$PROJECT_18S.unique.fasta, 
+                      cutoff=1, accnos=true)"
+```
+
+(@) **Align sequences to reference alignement**
+
+The file to be used can be downloaded from the mothur web site : https://www.mothur.org/w/images/a/a4/Silva.seed_v128.tgz.  It is best to :  
+* extract only the eukaryotes using mothur command:`get.lineage(taxonomy=$SILVA.tax, taxon=Eukaryota, fasta=$SILVA.align`
+* remove all the gaps that are common to all sequences with mothur command `filter.seqs` (see next line)
+
+```{console}
+$MOTHUR "#align.seqs(fasta=$PROJECT_18S.unique.abund.fasta, 
+                     reference=$FILE_SILVA, 
+                     flip=T, processors=32)"
+```
+
+(@) **Remove all the gaps that are common to all sequences**
+
+```{console}
+$MOTHUR "#filter.seqs(fasta=$PROJECT_18S.unique.abund.align, processors=32)"
+```
+
+(@) **Precluster the sequences**
+
+The number of differences taken into account can be changed. In general use `diffs=2`.  However if one does not want to make OTUS for example to look at fine genetic variation, it is necessary to remove this step.
+
+```{console}
+$MOTHUR "#pre.cluster(fasta=$PROJECT_18S.unique.abund.filter.fasta, 
+                      count=$PROJECT_18S.abund.count_table, 
+                      diffs=1, processors=32)"
+```
+
+(@) **Remove chimeras**
+
+```{console}
+$MOTHUR "#chimera.uchime(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta,
+                         count=$PROJECT_18S.unique.abund.filter.precluster.count_table, 
+                         processors=32)"
+
+$MOTHUR "#remove.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta,
+                      accnos=$PROJECT_18S.unique.abund.filter.precluster.denovo.uchime.accnos, 
+                      count=$PROJECT_18S.unique.abund.filter.precluster.count_table)"
+```
+
+(@) **Remove sequences in low abundance (here cutoff=2)**
+
+It is critical to remove the sequences in low abundance to speed up processing. In general use `cutoff = 10`.
+
+```{console}
+$MOTHUR "#split.abund(count=$PROJECT_18S.unique.abund.filter.precluster.pick.count_table,
+                      fasta=$PROJECT_18S.unique.abund.filter.precluster.pick.fasta, 
+                      cutoff=2, accnos=true)"
+```
+
+(@) **Remove sequences that are too short or too long (here minlength=200)**
+
+```{console}
+$MOTHUR "#screen.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.pick.abund.fasta,
+                      count=$PROJECT_18S.unique.abund.filter.precluster.pick.abund.count_table, 
+                      minlength=200, processors=32)"
+```
+
+(@) **Rename files to remember that sequences in low abundance where removed**
+
+```{console}
+cp $PROJECT_18S.unique.abund.filter.precluster.pick.abund.good.fasta        
+   $PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta
+cp $PROJECT_18S.unique.abund.filter.precluster.pick.abund.good.count_table 
+   $PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table
+```
+
+(@) **Classify the sequences using the PR2 database**
+
+Two files are required  
+* pr2.fasta
+* pr2.taxo
+
+```{console}
+$MOTHUR "#classify.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta,
+            count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table, 
+            reference=$FILE_PR2.fasta, taxonomy=$FILE_PR2.tax, 
+            processors=32, 
+            probs=T)"
+```
+
+(@) **Compute distance matrix**
+
+It is critical to have as few sequences as possible at this step because the computation time is proportionnal to the **square** of the number of sequences.
+
+```{console}
+$MOTHUR "#dist.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta, processors=32)"
+```
+
+(@) **Cluster the sequences to create the OTUs**
+
+Here we use a 0.02 cutoff corresponding to 98% similarity.
+
+```{console}
+$MOTHUR "#cluster(column=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.dist,
+                  count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table, 
+                  cutoff=0.02, processors=32)"
+```
+
+(@) **Classify the OTUs based on the classification of the sequences (see above)**
+
+```{console}
+$MOTHUR "#classify.otu(taxonomy=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.$FILE_PR2_END.wang.taxonomy,
+                       count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table,
+                       list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.list, 
+                       label=0.02, probs=F, basis=sequence)"
+```
+
+(@) **Get sequences represnetative of each OTU**
+
+```{console}
+$MOTHUR "#get.oturep(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta,
+                     column=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.dist, 
+                     count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table,
+                     list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.list, 
+                     method=abundance, 
+                     cutoff=0.02)"
+```
+
+(@) **The final result in a single file with all the information**
+
+* otu id
+* abundance in each sample
+* representative sequence
+* taxonomy
+
+
+```{console}
+$MOTHUR "#create.database(list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.list,
+          count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.0.02.rep.count_table, 
+          label=0.02, 
+          repfasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.0.02.rep.fasta ,
+          constaxonomy=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.0.02.cons.taxonomy)"
+```
+
+\begin{center}
+\includegraphics[height=300px]{carbom_database}
+\end{center}
