@@ -6,7 +6,7 @@ In this repository, you will find a set of tutorials of metabarcode analyses usi
      - 454 data
      - Illumina data
 	 
-# Prerequisites
+## Prerequisites
 
 Install the following software :  
 
