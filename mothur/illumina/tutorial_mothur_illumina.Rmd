@@ -192,8 +192,8 @@ It is necessary to clean up the memory because the fastq files are quite big and
 # Analysis with mothur
 
 Two files containing all the commands are provided  
-* mothur_carbom_linux.txt : use on a server (not tested on Mac)
-* mothur_carbom_windows.txt : use on windows
+* mothur_carbom_linux.sh : use on a server (not tested on Mac)
+* mothur_carbom_windows.cmd : use on windows
 
 Note that some of the steps have been removed for simplicity.
 
