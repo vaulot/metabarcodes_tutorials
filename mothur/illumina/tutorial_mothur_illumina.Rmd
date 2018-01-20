@@ -477,5 +477,5 @@ $MOTHUR "#create.database(list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.op
 
 # Alternative strategies
 
-* Use the R dada2 package : https://f1000research.com/articles/5-1492/v2
+* Use the R dada2 package : https://benjjneb.github.io/dada2/tutorial.html
 * Use vsearch : https://github.com/torognes/vsearch/wiki/VSEARCH-pipeline
