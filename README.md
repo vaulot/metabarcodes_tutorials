@@ -42,3 +42,7 @@ biocLite('dada2')             # metabarcode data analysis
 * [454](https://github.com/vaulot/metabarcodes_tutorials/blob/master/mothur/454/Mothur%20tutorial%20454.pptx)
 * [Illumina](https://github.com/vaulot/metabarcodes_tutorials/blob/master/mothur/illumina/tutorial_mothur_illumina.pdf)
 
+### Issues or questions
+
+Please post [here](https://github.com/vaulot/metabarcodes_tutorials/issues)
+
