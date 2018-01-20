@@ -10,7 +10,7 @@ In this repository, you will find a set of tutorials of metabarcode analyses usi
 
 ### Download and uncompress
 
-* The whole set of tutorials from the latest release : https://github.com/vaulot/metabarcodes_tutorials/releases
+* The whole set of tutorials from the download link (top-right above file list)
 
 * [PR2 database](https://github.com/vaulot/pr2_database/releases/download/4.7.2/pr2_version_4.7.2_mothur.zip). This file must be decompressed in the /databases directory
 
