@@ -4,10 +4,16 @@ DIR_DATA=".... /metabarcodes_tutorials/fastq_carbom"
 FILE_PR2_TAX="../databases/pr2_version_4.72_mothur.tax"
 FILE_PR2_FASTA="../databases/pr2_version_4.72_mothur.fasta"
 FILE_SILVA="../databases/silva.seed_v123.euk.fasta"
+FILE_PR2_END="72"
+FILE_OLIGOS = "../databases/oligos18s_V4_Zingone.oligos"
 
 MOTHUR="mothur"
 
 PROJECT="carbom"
+
+# Extract V4 region from PR2 database (not necessary)
+
+# $MOTHUR "#pcr.seqs(fasta=$FILE_PR2_FASTA, taxonomy=$FILE_PR2_TAX, oligos=$FILE_OLIGOS, pdiffs=2, rdiffs=2, processors=32)"
 
 # Change directory where the data are
 cd $DIR_DATA
@@ -17,7 +23,7 @@ $MOTHUR "#make.contigs(file=$PROJECT.txt, processors=32)"
 $MOTHUR "#screen.seqs(fasta=$PROJECT.trim.contigs.fasta,group=$PROJECT.contigs.groups,maxambig=0,minlength=350, maxlength=450, processors=32)"
 $MOTHUR "#count.groups(group = $PROJECT.contigs.good.groups)"
 
-$MOTHUR "#pcr.seqs(fasta=$PROJECT.trim.contigs.good.fasta, group=$PROJECT.contigs.good.groups, oligos=oligos18s_V4_Zingone.oligos, pdiffs=2, rdiffs=2, processors=32)"
+$MOTHUR "#pcr.seqs(fasta=$PROJECT.trim.contigs.good.fasta, group=$PROJECT.contigs.good.groups, oligos=$FILE_OLIGOS, pdiffs=2, rdiffs=2, processors=32)"
 $MOTHUR "#count.groups(group=$PROJECT.contigs.good.pcr.groups)"
 
 cp $PROJECT.trim.contigs.good.pcr.fasta $PROJECT_18S.fasta

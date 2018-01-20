@@ -1,16 +1,21 @@
-# Change the paths below to the path where you have downloaded the different files
+:: Change the paths below to the path where you have downloaded the different files
 SET DIR_DATA="C:\Users\vaulot\Google Drive\Scripts\metabarcodes_tutorials\fastq_carbom"
 
 SET FILE_PR2_TAX="..\databases\pr2_version_4.72_mothur.tax"
 SET FILE_PR2_FASTA="..\databases\pr2_version_4.72_mothur.fasta"
 SET FILE_PR2_END="72"
 SET FILE_SILVA="..\databases\silva.seed_v123.euk.fasta"
+SET FILE_OLIGOS = "..\databases\oligos18s_V4_Zingone.oligos"
 
 SET MOTHUR="C:\Program Files (x86)\mothur\mothur.exe"
 
 SET PROJECT="carbom"
 
-# Change directory where the data are
+:: Extract V4 region from PR2 database (not necessary)
+
+:: %MOTHUR% "#pcr.seqs(fasta=%FILE_PR2_FASTA%, taxonomy=%FILE_PR2_TAX%, oligos=%FILE_OLIGOS%, pdiffs=2, rdiffs=2, processors=32)"
+
+:: Change directory where the data are
 CD %DIR_DATA%
 
 %MOTHUR% "#make.contigs(file=%PROJECT%.txt, processors=32)"
@@ -18,10 +23,10 @@ CD %DIR_DATA%
 %MOTHUR% "#screen.seqs(fasta=%PROJECT%.trim.contigs.fasta,group=%PROJECT%.contigs.groups,maxambig=0,minlength=350, maxlength=450, processors=32)"
 %MOTHUR% "#count.groups(group = %PROJECT%.contigs.good.groups)"
 
-%MOTHUR% "#pcr.seqs(fasta=%PROJECT%.trim.contigs.good.fasta, group=%PROJECT%.contigs.good.groups, oligos=oligos18s_V4_Zingone.oligos, pdiffs=2, rdiffs=2, processors=32)"
+%MOTHUR% "#pcr.seqs(fasta=%PROJECT%.trim.contigs.good.fasta, group=%PROJECT%.contigs.good.groups, oligos=%FILE_OLIGOS%, pdiffs=2, rdiffs=2, processors=32)"
 %MOTHUR% "#count.groups(group=%PROJECT%.contigs.good.pcr.groups)"
 
-# Do at the DOS level
+:: Do at the DOS level
 rename %PROJECT%.trim.contigs.good.pcr.fasta %PROJECT%_18S.fasta
 rename %PROJECT%.contigs.good.pcr.groups %PROJECT%_18S.groups
 
