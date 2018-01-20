@@ -27,14 +27,20 @@ This tutorial explain how to process Illumina sequences.
 * The first part of the tutorial makes use of R to obtain information on the number and quality of sequences.
 * The second part uses mothur to process the sequences and compute the final abundance table.
 
+# Directory structure
 
-# Prerequisites
+* **/fastq_carbom** : fastq files from the carbom cruise
+* **/databases** : Silva alignement and PR2 database files (see Prerequisite above)
+* **/mothur/illumina** : Tutorial for Illumina files (carbom cruise)
+* **/mothur/454** : Tutorial with 454 files
+
+# Downloads
 
 Install the following software :  
 
-* mothur : https://github.com/mothur/mothur/releases/tag/v1.39.5
+* Mothur : https://github.com/mothur/mothur/releases/tag/v1.39.5
 
-* PR2 database : https://github.com/vaulot/pr2_database/releases/download/4.7.2/pr2_version_4.7.2_mothur.zip . This file must be decompressed in the /databases directory
+* Terminal program.  For Windows MobaXterm is highly recommended : https://mobaxterm.mobatek.net/
 
 * R : https://pbil.univ-lyon1.fr/CRAN/
 
@@ -53,6 +59,10 @@ biocLite("Biostrings")        # manipulate sequences
 biocLite('dada2')             # metabarcode data analysis
 
 ```
+
+Download and install in the **/databases directory**
+
+* PR2 database : https://github.com/vaulot/pr2_database/releases/download/4.7.2/pr2_version_4.7.2_mothur.zip . 
 
 # Data used
 
@@ -76,14 +86,9 @@ The data consist of the picoplankton samples from one transect and fastq files h
 * Gérikas Ribeiro C, Lopes dos Santos A, Marie D, Brandini P, Vaulot D. (2018). Relationships between photosynthetic eukaryotes and nitrogen-fixing cyanobacteria off Brazil. ISME J in press.
 * Gérikas Ribeiro C, Lopes dos Santos A, Marie D, Helena Pellizari V, Pereira Brandini F, Vaulot D. (2016). Pico and nanoplankton abundance and carbon stocks along the Brazilian Bight. PeerJ 4:e2587.
 
-# Directory structure
-
-* /fastq_carbom : fastq files from the carbom cruise
-* / databases : Silva alignement and PR2 database files (see Prerequisite above)
-* /mothur/illumina : Tutorial for Illumina files (carbom cruise)
-* /mothur/454 : Tutorial with 454 files
-
 # Pre visualization of the fastq files with R
+
+* Load the script file from **/mothur/illumina/R_analyze_fastq.R**
 
 **Load the necessary libraries**
 
@@ -129,7 +134,8 @@ This function takes as input the path where the fastq files are stored. It saves
   # List all the files in the directory fastq_path
    fns <- sort(list.files(fastq_path, full.names = TRUE)) 
    
-  # Only consider files containing the R1 extension (the R2 file should have the same number of sequences)
+  # Only consider files containing the R1 extension 
+   # the R2 file should have the same number of sequences
    fns <- fns[str_detect( basename(fns),"R1")]
    
    for(i in 1:length(fns)) { 
@@ -164,7 +170,8 @@ Note that the data have been sub-sampled at 1000 reads per file.
   df
   
 # The following line writes a file with the data  
-#  write.table(df, file = paste0(working_dir,"/n_seq.txt"), sep="\t", row.names = FALSE, na="", quote=FALSE)
+#  write.table(df, file = paste0(working_dir,"/n_seq.txt"), sep="\t", 
+               # row.names = FALSE, na="", quote=FALSE)
   
 # Plot the histogram of the number of sequences per file
   ggplot(df, aes(x=n_seq)) + 
@@ -218,6 +225,10 @@ DIR_DATA=".... /metabarcodes_tutorials/fastq_carbom"
 FILE_PR2_TAX="../databases/pr2_version_4.72_mothur.tax"
 FILE_PR2_FASTA="../databases/pr2_version_4.72_mothur.fasta"
 FILE_SILVA="../databases/silva.seed_v123.euk.fasta"
+FILE_PR2_END="72"
+
+FILE_OLIGOS = "../databases/oligos18s_V4_Zingone.oligos"
+
 MOTHUR="mothur"
 PROJECT="carbom"
 \end{Verbatim}  
@@ -271,7 +282,7 @@ $MOTHUR "#screen.seqs(fasta=$PROJECT.trim.contigs.fasta,group=$PROJECT.contigs.g
 \begin{Verbatim}
 $MOTHUR "#pcr.seqs(fasta=$PROJECT.trim.contigs.good.fasta, 
                    group=$PROJECT.contigs.good.groups, 
-                   oligos=oligos18s_V4_Zingone.oligos, 
+                   oligos=$FILE_OLIGOS, 
                    pdiffs=2, rdiffs=2, 
                    processors=32)"
 \end{Verbatim} 
@@ -461,7 +472,8 @@ $MOTHUR "#create.database(list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.op
 
 # What is next ?
 
-The database format can be easily used by the phyloseq package.  A short tutorial can be found here : https://github.com/vaulot/R_tutorials
+* It is a good practice to confirm the phylogeny of at least the major OTUs by BLAST
+* The database format can be easily used by the phyloseq package.  A short tutorial can be found here : https://github.com/vaulot/R_tutorials
 
 # Alternative strategies
 
