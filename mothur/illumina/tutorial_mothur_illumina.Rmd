@@ -101,100 +101,84 @@ The data consist of the picoplankton samples from one transect and fastq files h
   library("dplyr")
 ```
 
-(1) **Function to plot quality of Illumina files (dada2 library)**
 
-This function takes as input the path where the fastq files are stored. The plots are saved as pdf files and the subdirectory /qual/
-
-```{r}
-  fastq_qual_plot <- function(fastq_path) {
-
-  # List all the files in the directory fastq_path that have the extension .fastq
-   fns <- sort(list.files(fastq_path, full.names = TRUE)) 
-   fns <- fns[str_detect( basename(fns),".fastq")] 
- 
-   for(i in 1:length(fns)) { 
-     p1 <- plotQualityProfile(fns[i]) + ggtitle(basename(fns[i]))
-     p1_file <- paste0(basename(fns[i]),".pdf")
-     ggsave( plot=p1, filename= paste0(fastq_path,"/qual/",p1_file), 
-              device = "pdf", width = 15, height = 15, scale=1, units="cm")
-    } 
-}
-
-```
-
-(2) **Function to compute number of sequences in fastq files**
-
-This function takes as input the path where the fastq files are stored. It saves a file with the number of sequences in each fastq file.
-
-```{r}
-  fastq_size <- function(fastq_path) {
-    
-   df <- data.frame()  
-   
-  # List all the files in the directory fastq_path
-   fns <- sort(list.files(fastq_path, full.names = TRUE)) 
-   
-  # Only consider files containing the R1 extension 
-   # the R2 file should have the same number of sequences
-   fns <- fns[str_detect( basename(fns),"R1")]
-   
-   for(i in 1:length(fns)) { 
-     geom <- fastq.geometry(fns[i])
-     df_one_row <- data.frame (n_seq=geom[1], file_name=basename(fns[i]) )
-     df <- bind_rows(df, df_one_row)
-   } 
-   df
-  }
-```
-
-(3) **Set up the directories for the analysis**
+(1) **Set up the directories for the analysis**
 ```{r}  
-  # Change the following line to the path where you unzipped the tutorials
-  tutorial_dir <- "C:/Users/vaulot/Google Drive/Scripts/"
-
-  working_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/mothur/illumina")
-  ngs_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/fastq_carbom")
+  # change the following line to the path where you unzipped the tutorials
+    tutorial_dir <- "C:/Users/vaulot/Google Drive/Scripts/"
   
-  setwd(working_dir)
+  # set up working directory
+    working_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/mothur/illumina")
+    setwd(working_dir)
+  
+  # ngs directory
+    ngs_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/fastq_carbom")
+
+  # get a list of all fastq files in the ngs directory and separate R1 and R2
+    fns <- sort(list.files(ngs_dir, full.names = TRUE)) 
+    fns <- fns[str_detect( basename(fns),".fastq")]
+    fns_R1 <- fns[str_detect( basename(fns),"R1")]
+    fns_R2 <- fns[str_detect( basename(fns),"R2")]
 ```
 
-(4) **Compute number of paired reads in each fastq file**
+(2) **Compute number of paired reads in each fastq file**
 
 Note that the data have been sub-sampled at 1000 reads per file.
 ```{r, message=FALSE, warning=FALSE}  
-# Call function that returns fastq file size
-  df <- fastq_size(ngs_dir)
+  # create an empty data frame  
+    df <- data.frame()  
 
-# Only keep the R1 files since R1 and R2 files have same length
-  df <- df %>% filter(str_detect(file_name,"R1") == TRUE)
-  df
-  
-# The following line writes a file with the data  
-#  write.table(df, file = paste0(working_dir,"/n_seq.txt"), sep="\t", 
-               # row.names = FALSE, na="", quote=FALSE)
-  
-# Plot the histogram of the number of sequences per file
-  ggplot(df, aes(x=n_seq)) + 
+  # loop throuh all the R1 files (no need to go through R2 which should be the same) 
+
+    for(i in 1:length(fns_R1)) { 
+      
+      # use the dada2 function fastq.geometry
+        geom <- fastq.geometry(fns_R1[i])
+        
+      # extract the information on number of sequences and file name 
+        df_one_row <- data.frame (n_seq=geom[1], file_name=basename(fns[i]) )
+        
+      # add one line to data frame
+        df <- bind_rows(df, df_one_row)
+   } 
+  # display number of sequences and write data to small file
+    df
+    write.table(df, file = paste0(working_dir,"/n_seq.txt"), sep="\t", row.names = FALSE, na="", quote=FALSE)
+
+  # plot the histogram with number of sequences
+    ggplot(df, aes(x=n_seq)) + 
           geom_histogram( alpha = 0.5, position="identity", binwidth = 10) +
-           xlim(0, 2000)
+          xlim(0, 2000)
 ```
 
-(5) **Plot the quality fo each fastq file**
-```{r}  
- # The script execute the following line
-   # fastq_qual_plot(ngs_dir)
+\pagebreak
 
- # Here we just show one example of plot
-   fastq_file <- paste0(ngs_dir,"/120p_S39_R1.subsample.fastq")
-   plotQualityProfile(fastq_file) 
+(3) **Plot the quality fo each fastq file**
+```{r}  
+  # loop throuh all the R1 files (no need to go through R2 which should be the same) 
+
+   for(i in 1:2) { 
+     
+    # Use dada2 function to plot quality
+      p1 <- plotQualityProfile(fns[i])
+      
+    # Only plot on screen for first 2 files  
+      print(p1)
+      
+    # save the file as a pdf file 
+      p1_file <- paste0(ngs_dir,"/qual/",basename(fns[i]),".pdf")
+      ggsave( plot=p1, filename= p1_file, 
+                device = "pdf", width = 15, height = 15, scale=1, units="cm")
+    }   
 ```  
 
-(6) **Clean up memory**
+(4) **Clean up memory**
 
 It is necessary to clean up the memory because the fastq files are quite big and occupy a lot of memory during processing
 ```{r}
   rm(list=ls())
 ```  
+\pagebreak
 
 # Analysis with mothur
 

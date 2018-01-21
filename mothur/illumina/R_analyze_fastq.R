@@ -9,68 +9,71 @@
   library("stringr")
   library("dplyr")
 
-# Function to plot quality of Illumina files ------------------------------------------
-
-  fastq_qual_plot <- function(fastq_path) {
-  # fastq_path <- "C:/Data Biomol/RNA/Tags/CEE 2014 Andres/fastq"
+# Set up directories --------------------------------------------------------
   
-   fns <- sort(list.files(fastq_path, full.names = TRUE)) 
-   fns <- fns[str_detect( basename(fns),".fastq")] 
- 
-   for(i in 1:length(fns)) { 
-     p1 <- plotQualityProfile(fns[i]) + ggtitle(basename(fns[i]))
-     p1_file <- paste0(basename(fns[i]),".pdf")
-     ggsave( plot=p1, filename= paste0(fastq_path,"/qual/",p1_file), 
-              device = "pdf", width = 15, height = 15, scale=1, units="cm")
-    } 
- 
-}
+  # change the following line to the path where you unzipped the tutorials
+    tutorial_dir <- "C:/Users/vaulot/Google Drive/Scripts/"
+  
+  # set up working directory
+    working_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/mothur/illumina")
+    setwd(working_dir)
+  
+  # ngs directory
+    ngs_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/fastq_carbom")
 
-
-# Function to compute number of sequences in fastq files ---------------------------------------------
-
-  fastq_size <- function(fastq_path) {
+  # get a list of all fastq files in the ngs directory and separate R1 and R2
+    fns <- sort(list.files(ngs_dir, full.names = TRUE)) 
+    fns <- fns[str_detect( basename(fns),".fastq")]
+    fns_R1 <- fns[str_detect( basename(fns),"R1")]
+    fns_R2 <- fns[str_detect( basename(fns),"R2")]
+  
+# Compute number of paired reads ---------------------------------------------------------------
     
-   df <- data.frame()  
-   
-   fns <- sort(list.files(fastq_path, full.names = TRUE)) 
-   fns <- fns[str_detect( basename(fns),"R1")]
-   
-   for(i in 1:length(fns)) { 
-     geom <- fastq.geometry(fns[i])
-     df_one_row <- data.frame (n_seq=geom[1], file_name=basename(fns[i]) )
-     df <- bind_rows(df, df_one_row)
+  # create an empty data frame  
+    df <- data.frame()  
+
+  # loop throuh all the R1 files (no need to go through R2 which should be the same) 
+
+    for(i in 1:length(fns_R1)) { 
+      
+      # use the dada2 function fastq.geometry
+        geom <- fastq.geometry(fns_R1[i])
+        
+      # extract the information on number of sequences and file name 
+        df_one_row <- data.frame (n_seq=geom[1], file_name=basename(fns[i]) )
+        
+      # add one line to data frame
+        df <- bind_rows(df, df_one_row)
    } 
-   df
-   
-  }
+  # display number of sequences and write data to small file
+    df
+    write.table(df, file = paste0(working_dir,"/n_seq.txt"), sep="\t", row.names = FALSE, na="", quote=FALSE)
 
-
-# The main program --------------------------------------------------------
-  
-  # Change the following line to the path where you unzipped the tutorials
-  tutorial_dir <- "C:/Users/vaulot/Google Drive/Scripts/"
-
-  working_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/mothur/illumina")
-  setwd(working_dir)
-
-  ngs_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/fastq_carbom")
-
-
-# Number of paired reads ---------------------------------------------------------------
-  df <- fastq_size(ngs_dir)
-  df <- df %>% filter(str_detect(file_name,"R1") == TRUE)
-  
-  write.table(df, file = paste0(working_dir,"/n_seq.txt"), sep="\t", row.names = FALSE, na="", quote=FALSE)
-
-  ggplot(df, aes(x=n_seq)) + 
+  # plot the histogram with number of sequences
+    ggplot(df, aes(x=n_seq)) + 
           geom_histogram( alpha = 0.5, position="identity", binwidth = 10) +
-           xlim(0, 2000)
+          xlim(0, 2000)
 
 # Plot quality ------------------------------------------------------------
 
-  fastq_qual_plot(ngs_dir)
-  
+  # loop throuh all the R1 files (no need to go through R2 which should be the same) 
+
+   for(i in 1:length(fns)) { 
+     
+    # Use dada2 function to plot quality
+      p1 <- plotQualityProfile(fns[i])
+      
+    # Only plot on screen for first 2 files  
+      if (i <= 2) {print(p1)}
+      
+    # save the file as a pdf file 
+      p1_file <- paste0(ngs_dir,"/qual/",basename(fns[i]),".pdf")
+      ggsave( plot=p1, filename= p1_file, 
+                device = "pdf", width = 15, height = 15, scale=1, units="cm")
+    }   
+
+    
+    
 # Clean up memory ------------------------------------------------------------
 
   rm(list=ls())

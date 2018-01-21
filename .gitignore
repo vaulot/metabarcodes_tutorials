@@ -1,11 +1,15 @@
-fastq_carbom/carbom.contigs.count.summary
 *.summary
 *.groups
 *.report
-fastq_carbom/carbom.scrap.*
+carbom.scrap.*
 *.qual
 *.accnos
 carbom.trim.*
 fastq_carbom/qual/*.*
 *.logfile
 carbom_18S.*
+pr2*.*
+*.8mer
+!*.database
+mothur/illumina/~$Mothur tutorial Illumina.pptx
+mothur/illumina/n_seq.txt
