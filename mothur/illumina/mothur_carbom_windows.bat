@@ -1,21 +1,22 @@
-:: Change the paths below to the path where you have downloaded the different files
+:: 1. Change the path below to the path where you have downloaded the fastQ files
 SET DIR_DATA="C:\Users\vaulot\Google Drive\Scripts\metabarcodes_tutorials\fastq_carbom"
+
+:: 2. Change the path below to the path where you have downloaded the mothur program
+SET MOTHUR="C:\Program Files (x86)\mothur\mothur.exe"
+
+:: Nothing else to change below
 
 SET FILE_PR2_TAX="..\databases\pr2_version_4.72_mothur.tax"
 SET FILE_PR2_FASTA="..\databases\pr2_version_4.72_mothur.fasta"
 SET FILE_PR2_END="72"
 SET FILE_SILVA="..\databases\silva.seed_v123.euk.fasta"
-SET FILE_OLIGOS = "..\databases\oligos18s_V4_Zingone.oligos"
-
-SET MOTHUR="C:\Program Files (x86)\mothur\mothur.exe"
+SET FILE_OLIGOS="..\databases\oligos18s_V4_Zingone.oligos"
 
 SET PROJECT="carbom"
 
 :: Extract V4 region from PR2 database (not necessary)
-
 :: %MOTHUR% "#pcr.seqs(fasta=%FILE_PR2_FASTA%, taxonomy=%FILE_PR2_TAX%, oligos=%FILE_OLIGOS%, pdiffs=2, rdiffs=2, processors=32)"
 
-:: Change directory where the data are
 CD %DIR_DATA%
 
 %MOTHUR% "#make.contigs(file=%PROJECT%.txt, processors=32)"

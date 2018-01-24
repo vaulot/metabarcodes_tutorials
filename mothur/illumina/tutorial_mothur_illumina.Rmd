@@ -1,7 +1,7 @@
 ---
 title: "Mothur Illumina Tutorial"
 author: "Daniel Vaulot"
-date: "17 janvier 2018"
+date: '`r format(Sys.time(), "%d %m %Y")`'
 header-includes:
    - \usepackage{color, fancyvrb}
 output:
@@ -38,9 +38,11 @@ This tutorial explain how to process Illumina sequences.
 
 Install the following software :  
 
-* Mothur : https://github.com/mothur/mothur/releases/tag/v1.39.5
-
 * Terminal program.  For Windows MobaXterm is highly recommended : https://mobaxterm.mobatek.net/
+
+* Notepad++ if you are using windows : https://notepad-plus-plus.org/
+
+* Mothur : https://github.com/mothur/mothur/releases/tag/v1.39.5
 
 * R : https://pbil.univ-lyon1.fr/CRAN/
 
@@ -182,13 +184,7 @@ It is necessary to clean up the memory because the fastq files are quite big and
 
 # Analysis with mothur
 
-Two files containing all the commands are provided  
-* mothur_carbom_linux.sh : use on a server (not tested on Mac)
-* mothur_carbom_windows.cmd : use on windows
-
-Note that some of the steps have been removed for simplicity.
-
-The major steps of the processing are :  
+## Major processing steps
 
 * Build the contigs from the R1 and R2 reads
 * Extract the sequences that contain the 2 primers
@@ -200,23 +196,63 @@ The major steps of the processing are :
 * Cluster sequences at a given threhold (make OTUs)
 * Create a final file with all the information
 
+Note that some of the steps have been removed for simplicity.
+
+## How to run the script
+
+Two files containing all the commands are provided
+
+* mothur_carbom_linux.sh : use on a Linux/Mac
+* mothur_carbom_windows.cmd : use on Windows
+
+1. Open the relevant file with an editor such as Notepad++
+2. Change lines 2 and 4 to correspond to the location of the fastq files and mothur executable
+3. Open either a terminal window (Linux/Mac) or a cmd window (DOS)
+4. Copy and paste each line in turn in the terminal window
+
+\pagebreak
+
+## Step by step
+
 (@) **First define a few constants to make the script independant of the files**
 
-\begin{Verbatim}
-# Change the DIR_DATA below to the path where you have downloaded the different files
-DIR_DATA=".... /metabarcodes_tutorials/fastq_carbom"
+Under Linux/Mac
 
+\begin{Verbatim}
+# 1. Change the path below to the path where you have downloaded the fastQ files
+DIR_DATA="/home/metabarcodes_tutorials/fastq_carbom"
+
+# 2. Change the path below to the path where you have downloaded the mothuer fules
+MOTHUR="/usr/local/genome2/mothur-1.39.5/mothur"
+
+# Nothing else to change below
 FILE_PR2_TAX="../databases/pr2_version_4.72_mothur.tax"
 FILE_PR2_FASTA="../databases/pr2_version_4.72_mothur.fasta"
 FILE_SILVA="../databases/silva.seed_v123.euk.fasta"
 FILE_PR2_END="72"
-
-FILE_OLIGOS = "../databases/oligos18s_V4_Zingone.oligos"
-
-MOTHUR="mothur"
+FILE_OLIGOS="../databases/oligos18s_V4_Zingone.oligos"
 PROJECT="carbom"
-\end{Verbatim}  
+\end{Verbatim} 
 
+Under Windows syntax is slightly different (for the next steps we use the Linux/Mac syntax).
+
+\begin{Verbatim}
+:: 1. Change the path below to the path where you have downloaded the fastQ files
+SET DIR_DATA="C:\Users\vaulot\Google Drive\Scripts\metabarcodes_tutorials\fastq_carbom"
+
+:: 2. Change the path below to the path where you have downloaded the mothur program
+SET MOTHUR="C:\Program Files (x86)\mothur\mothur.exe"
+
+:: Nothing else to change below
+
+SET FILE_PR2_TAX="..\databases\pr2_version_4.72_mothur.tax"
+SET FILE_PR2_FASTA="..\databases\pr2_version_4.72_mothur.fasta"
+SET FILE_PR2_END="72"
+SET FILE_SILVA="..\databases\silva.seed_v123.euk.fasta"
+SET FILE_OLIGOS="..\databases\oligos18s_V4_Zingone.oligos"
+
+SET PROJECT="carbom"
+\end{Verbatim}
 
 (@) **Change directory to where the fastq files are located**
 

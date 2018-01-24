@@ -1,21 +1,17 @@
-# Change the paths below to the path where you have downloaded the different files
-DIR_DATA=".... /metabarcodes_tutorials/fastq_carbom"
+# 1. Change the path below to the path where you have downloaded the fastQ files
+DIR_DATA="/home/metabarcodes_tutorials/fastq_carbom"
 
+# 2. Change the path below to the path where you have downloaded the mothuer fules
+MOTHUR="/usr/local/genome2/mothur-1.39.5/mothur"
+
+# Nothing else to change below
 FILE_PR2_TAX="../databases/pr2_version_4.72_mothur.tax"
 FILE_PR2_FASTA="../databases/pr2_version_4.72_mothur.fasta"
 FILE_SILVA="../databases/silva.seed_v123.euk.fasta"
 FILE_PR2_END="72"
-FILE_OLIGOS = "../databases/oligos18s_V4_Zingone.oligos"
-
-MOTHUR="mothur"
-
+FILE_OLIGOS="../databases/oligos18s_V4_Zingone.oligos"
 PROJECT="carbom"
 
-# Extract V4 region from PR2 database (not necessary)
-
-# $MOTHUR "#pcr.seqs(fasta=$FILE_PR2_FASTA, taxonomy=$FILE_PR2_TAX, oligos=$FILE_OLIGOS, pdiffs=2, rdiffs=2, processors=32)"
-
-# Change directory where the data are
 cd $DIR_DATA
 
 $MOTHUR "#make.contigs(file=$PROJECT.txt, processors=32)"
