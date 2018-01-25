@@ -5,7 +5,9 @@ In this repository, you will find a set of tutorials of metabarcode analyses usi
 * Mothur
      - [454 data](https://github.com/vaulot/metabarcodes_tutorials/tree/master/mothur/454)
      - [Illumina data](https://github.com/vaulot/metabarcodes_tutorials/tree/master/mothur/illumina)
-	 
+* Dada2
+     - [Illumina data](https://github.com/vaulot/metabarcodes_tutorials/tree/master/R_dada2)
+     
 ## How to use
 
 ### Download and uncompress
@@ -16,6 +18,10 @@ In this repository, you will find a set of tutorials of metabarcode analyses usi
 
 
 ### Install the following software :  
+
+* Terminal program.  For Windows MobaXterm is highly recommended : https://mobaxterm.mobatek.net/
+
+* Notepad++ if you are using windows : https://notepad-plus-plus.org/
 
 * mothur : https://github.com/mothur/mothur/releases/tag/v1.39.5
 
@@ -28,19 +34,23 @@ In this repository, you will find a set of tutorials of metabarcode analyses usi
 ```R
 install.packages("dplyr")     # To manipulate dataframes
 install.packages("stringr")   # To strings
-
-install.packages("ggplot2")   # for high quality graphics
+install.packages("ggplot2")   # To do plots
+install.packages("readxl")    # To read excel files
+install.packages("tibble")    # To work with data frames
+install.packages("tidyr")    # To work with data frames
 
 source("https://bioconductor.org/biocLite.R")
-biocLite("Biostrings")        # manipulate sequences
 biocLite('dada2')             # metabarcode data analysis
+biocLite('phyloseq')          # metabarcode data analysis
+biocLite('Biostrings')        # needed for fastq.geometry
 
 ```
 
 ### Follow the step by step instructions :
 
-* [454](https://github.com/vaulot/metabarcodes_tutorials/blob/master/mothur/454/Mothur%20tutorial%20454.pptx)
-* [Illumina](https://github.com/vaulot/metabarcodes_tutorials/blob/master/mothur/illumina/tutorial_mothur_illumina.pdf)
+* [Mothur 454](https://github.com/vaulot/metabarcodes_tutorials/blob/master/mothur/454/Mothur%20tutorial%20454.pptx)
+* [Mothur Illumina](https://github.com/vaulot/metabarcodes_tutorials/blob/master/mothur/illumina/tutorial_mothur_illumina.pdf)
+* [R Dada2 Illumina](https://github.com/vaulot/metabarcodes_tutorials/blob/master/R_dada2/R_dada2_tutorial.pdf)
 
 ### Issues or questions
 
