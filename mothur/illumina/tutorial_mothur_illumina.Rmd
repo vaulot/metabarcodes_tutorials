@@ -219,45 +219,45 @@ Two files containing all the commands are provided
 Under Linux/Mac
 
 \begin{Verbatim}
-# 1. Change the path below to the path where you have downloaded the fastQ files
-DIR_DATA="/home/metabarcodes_tutorials/fastq_carbom"
-
-# 2. Change the path below to the path where you have downloaded the mothuer fules
-MOTHUR="/usr/local/genome2/mothur-1.39.5/mothur"
-
-# Nothing else to change below
-FILE_PR2_TAX="../databases/pr2_version_4.72_mothur.tax"
-FILE_PR2_FASTA="../databases/pr2_version_4.72_mothur.fasta"
-FILE_SILVA="../databases/silva.seed_v123.euk.fasta"
-FILE_PR2_END="72"
-FILE_OLIGOS="../databases/oligos18s_V4_Zingone.oligos"
-PROJECT="carbom"
+  # 1. Change the path below to the path where you have downloaded the fastQ files
+  DIR_DATA="/home/metabarcodes_tutorials/fastq_carbom"
+  
+  # 2. Change the path below to the path where you have downloaded the mothur files
+  MOTHUR="/usr/local/genome2/mothur-1.39.5/mothur"
+  
+  # Nothing else to change below
+  FILE_PR2_TAX="../databases/pr2_version_4.72_mothur.tax"
+  FILE_PR2_FASTA="../databases/pr2_version_4.72_mothur.fasta"
+  FILE_SILVA="../databases/silva.seed_v123.euk.fasta"
+  FILE_PR2_END="72"
+  FILE_OLIGOS="../databases/oligos18s_V4_Zingone.oligos"
+  PROJECT="carbom"
 \end{Verbatim} 
 
 Under Windows syntax is slightly different (for the next steps we use the Linux/Mac syntax).
 
 \begin{Verbatim}
-:: 1. Change the path below to the path where you have downloaded the fastQ files
-SET DIR_DATA="C:\Users\vaulot\Google Drive\Scripts\metabarcodes_tutorials\fastq_carbom"
-
-:: 2. Change the path below to the path where you have downloaded the mothur program
-SET MOTHUR="C:\Program Files (x86)\mothur\mothur.exe"
-
-:: Nothing else to change below
-
-SET FILE_PR2_TAX="..\databases\pr2_version_4.72_mothur.tax"
-SET FILE_PR2_FASTA="..\databases\pr2_version_4.72_mothur.fasta"
-SET FILE_PR2_END="72"
-SET FILE_SILVA="..\databases\silva.seed_v123.euk.fasta"
-SET FILE_OLIGOS="..\databases\oligos18s_V4_Zingone.oligos"
-
-SET PROJECT="carbom"
+  :: 1. Change the path below to the path where you have downloaded the fastQ files
+  SET DIR_DATA="C:\Users\vaulot\Google Drive\Scripts\metabarcodes_tutorials\fastq_carbom"
+  
+  :: 2. Change the path below to the path where you have downloaded the mothur program
+  SET MOTHUR="C:\Program Files (x86)\mothur\mothur.exe"
+  
+  :: Nothing else to change below
+  
+  SET FILE_PR2_TAX="..\databases\pr2_version_4.72_mothur.tax"
+  SET FILE_PR2_FASTA="..\databases\pr2_version_4.72_mothur.fasta"
+  SET FILE_PR2_END="72"
+  SET FILE_SILVA="..\databases\silva.seed_v123.euk.fasta"
+  SET FILE_OLIGOS="..\databases\oligos18s_V4_Zingone.oligos"
+  
+  SET PROJECT="carbom"
 \end{Verbatim}
 
 (@) **Change directory to where the fastq files are located**
 
 \begin{Verbatim}
-cd $DIR_DATA
+  cd $DIR_DATA
 \end{Verbatim}  
 
 
@@ -272,7 +272,7 @@ This file has the following structure :
 | 122p | 122p_S4_R1.subsample.fastq | 122p_S4_R2.subsample.fastq | 
 
 \begin{Verbatim}
-$MOTHUR "#make.contigs(file=$PROJECT.txt, processors=32)"
+  $MOTHUR "#make.contigs(file=$PROJECT.txt, processors=32)"
 \end{Verbatim} 
 
 
@@ -283,9 +283,8 @@ $MOTHUR "#make.contigs(file=$PROJECT.txt, processors=32)"
 * Maxlength=450
 
 \begin{Verbatim}
-$MOTHUR "#screen.seqs(fasta=$PROJECT.trim.contigs.fasta,group=$PROJECT.contigs.groups,
-                      maxambig=0,minlength=350, maxlength=450, processors=32)"
-
+  $MOTHUR "#screen.seqs(fasta=$PROJECT.trim.contigs.fasta,group=$PROJECT.contigs.groups,
+                        maxambig=0,minlength=350, maxlength=450, processors=32)"
 \end{Verbatim} 
 
 
@@ -300,25 +299,25 @@ $MOTHUR "#screen.seqs(fasta=$PROJECT.trim.contigs.fasta,group=$PROJECT.contigs.g
 | primer | CCAGCASCYGCGGTAATTCC | ACTTTCGTTCTTGATYRATGA | 18S_V4_Zingone |
 
 \begin{Verbatim}
-$MOTHUR "#pcr.seqs(fasta=$PROJECT.trim.contigs.good.fasta, 
-                   group=$PROJECT.contigs.good.groups, 
-                   oligos=$FILE_OLIGOS, 
-                   pdiffs=2, rdiffs=2, 
-                   processors=32)"
+  $MOTHUR "#pcr.seqs(fasta=$PROJECT.trim.contigs.good.fasta, 
+                     group=$PROJECT.contigs.good.groups, 
+                     oligos=$FILE_OLIGOS, 
+                     pdiffs=2, rdiffs=2, 
+                     processors=32)"
 \end{Verbatim} 
 
 
 (@) **Shorten file names and indicate gene name**
 
 \begin{Verbatim}
-cp $PROJECT.trim.contigs.good.pcr.fasta $PROJECT_18S.fasta
-cp $PROJECT.contigs.good.pcr.groups $PROJECT_18S.groups
+  cp $PROJECT.trim.contigs.good.pcr.fasta $PROJECT_18S.fasta
+  cp $PROJECT.contigs.good.pcr.groups $PROJECT_18S.groups
 \end{Verbatim}
 
 (@) **Dereplicate unique sequences**
 
 \begin{Verbatim}
-$MOTHUR "#unique.seqs(fasta=$PROJECT_18S.fasta)"
+  $MOTHUR "#unique.seqs(fasta=$PROJECT_18S.fasta)"
 \end{Verbatim}
 
 (@) **Create a count file**
@@ -326,18 +325,18 @@ $MOTHUR "#unique.seqs(fasta=$PROJECT_18S.fasta)"
 This file create a table which as the following structure. For each unique sequence, it provides the total number of sequences and the number of sequences in each sample.
 
 \begin{verbatim}
-Representative_Sequence	total	120p	121p	122p	125p	126p
-M02439_22_000000000-AD0LA_1_1101_14247_1437	277	46	35	0	12	20
-M02439_22_000000000-AD0LA_1_1101_12787_1647	2	2	0	0	0	0
-M02439_22_000000000-AD0LA_1_1101_17899_1772	2	2	0	0	0	0
-M02439_22_000000000-AD0LA_1_1101_13893_1778	1	1	0	0	0	0
+  Representative_Sequence	total	120p	121p	122p	125p	126p
+  M02439_22_000000000-AD0LA_1_1101_14247_1437	277	46	35	0	12	20
+  M02439_22_000000000-AD0LA_1_1101_12787_1647	2	2	0	0	0	0
+  M02439_22_000000000-AD0LA_1_1101_17899_1772	2	2	0	0	0	0
+  M02439_22_000000000-AD0LA_1_1101_13893_1778	1	1	0	0	0	0
 \end{verbatim}
 
 This step saves disk space and speed up analysis
 
 \begin{Verbatim}
-$MOTHUR "#count.seqs(name=$PROJECT_18S.names, 
-                     group=$PROJECT_18S.groups, processors=32)"
+  $MOTHUR "#count.seqs(name=$PROJECT_18S.names, 
+                       group=$PROJECT_18S.groups, processors=32)"
 \end{Verbatim}
 
 (@) **Remove singletons**
@@ -345,9 +344,9 @@ $MOTHUR "#count.seqs(name=$PROJECT_18S.names,
 One can change the settings with the cutoff parameter.
 
 \begin{Verbatim}
-$MOTHUR "#split.abund(count=$PROJECT_18S.count_table, 
-                      fasta=$PROJECT_18S.unique.fasta, 
-                      cutoff=1, accnos=true)"
+  $MOTHUR "#split.abund(count=$PROJECT_18S.count_table, 
+                        fasta=$PROJECT_18S.unique.fasta, 
+                        cutoff=1, accnos=true)"
 \end{Verbatim}
 
 (@) **Align sequences to reference alignement**
@@ -358,15 +357,15 @@ The file to be used can be downloaded from the mothur web site : https://www.mot
 * remove all the gaps that are common to all sequences with mothur command `filter.seqs` (see next line)
 
 \begin{Verbatim}
-$MOTHUR "#align.seqs(fasta=$PROJECT_18S.unique.abund.fasta, 
-                     reference=$FILE_SILVA, 
-                     flip=T, processors=32)"
+  $MOTHUR "#align.seqs(fasta=$PROJECT_18S.unique.abund.fasta, 
+                       reference=$FILE_SILVA, 
+                       flip=T, processors=32)"
 \end{Verbatim}
 
 (@) **Remove all the gaps that are common to all sequences**
 
 \begin{Verbatim}
-$MOTHUR "#filter.seqs(fasta=$PROJECT_18S.unique.abund.align, processors=32)"
+  $MOTHUR "#filter.seqs(fasta=$PROJECT_18S.unique.abund.align, processors=32)"
 \end{Verbatim}
 
 (@) **Precluster the sequences**
@@ -374,21 +373,21 @@ $MOTHUR "#filter.seqs(fasta=$PROJECT_18S.unique.abund.align, processors=32)"
 The number of differences taken into account can be changed. In general use `diffs=2`.  However if one does not want to make OTUS for example to look at fine genetic variation, it is necessary to remove this step.
 
 \begin{Verbatim}
-$MOTHUR "#pre.cluster(fasta=$PROJECT_18S.unique.abund.filter.fasta, 
-                      count=$PROJECT_18S.abund.count_table, 
-                      diffs=1, processors=32)"
+  $MOTHUR "#pre.cluster(fasta=$PROJECT_18S.unique.abund.filter.fasta, 
+                        count=$PROJECT_18S.abund.count_table, 
+                        diffs=1, processors=32)"
 \end{Verbatim}
 
 (@) **Remove chimeras**
 
 \begin{Verbatim}
-$MOTHUR "#chimera.uchime(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta,
-                         count=$PROJECT_18S.unique.abund.filter.precluster.count_table, 
-                         processors=32)"
-
-$MOTHUR "#remove.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta,
-                      accnos=$PROJECT_18S.unique.abund.filter.precluster.denovo.uchime.accnos, 
-                      count=$PROJECT_18S.unique.abund.filter.precluster.count_table)"
+  $MOTHUR "#chimera.uchime(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta,
+                           count=$PROJECT_18S.unique.abund.filter.precluster.count_table, 
+                           processors=32)"
+  
+  $MOTHUR "#remove.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta,
+                        accnos=$PROJECT_18S.unique.abund.filter.precluster.denovo.uchime.accnos, 
+                        count=$PROJECT_18S.unique.abund.filter.precluster.count_table)"
 \end{Verbatim}
 
 (@) **Remove sequences in low abundance (here cutoff=2)**
@@ -396,26 +395,26 @@ $MOTHUR "#remove.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.fasta,
 It is critical to remove the sequences in low abundance to speed up processing. In general use `cutoff = 10`.
 
 \begin{Verbatim}
-$MOTHUR "#split.abund(count=$PROJECT_18S.unique.abund.filter.precluster.pick.count_table,
-                      fasta=$PROJECT_18S.unique.abund.filter.precluster.pick.fasta, 
-                      cutoff=2, accnos=true)"
+  $MOTHUR "#split.abund(count=$PROJECT_18S.unique.abund.filter.precluster.pick.count_table,
+                        fasta=$PROJECT_18S.unique.abund.filter.precluster.pick.fasta, 
+                        cutoff=2, accnos=true)"
 \end{Verbatim}
 
 (@) **Remove sequences that are too short or too long (here minlength=200)**
 
 \begin{Verbatim}
-$MOTHUR "#screen.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.pick.abund.fasta,
-                      count=$PROJECT_18S.unique.abund.filter.precluster.pick.abund.count_table, 
-                      minlength=200, processors=32)"
+  $MOTHUR "#screen.seqs(fasta=$PROJECT_18S.unique.abund.filter.precluster.pick.abund.fasta,
+                        count=$PROJECT_18S.unique.abund.filter.precluster.pick.abund.count_table, 
+                        minlength=200, processors=32)"
 \end{Verbatim}
 
 (@) **Rename files to remember that sequences in low abundance where removed**
 
 \begin{Verbatim}
-cp $PROJECT_18S.unique.abund.filter.precluster.pick.abund.good.fasta        
-   $PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta
-cp $PROJECT_18S.unique.abund.filter.precluster.pick.abund.good.count_table 
-   $PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table
+  cp $PROJECT_18S.unique.abund.filter.precluster.pick.abund.good.fasta        
+     $PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta
+  cp $PROJECT_18S.unique.abund.filter.precluster.pick.abund.good.count_table 
+     $PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table
 \end{Verbatim}
 
 (@) **Classify the sequences using the PR2 database**
@@ -426,11 +425,11 @@ Two files are required
 * pr2.taxo
 
 \begin{Verbatim}
-$MOTHUR "#classify.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta,
-            count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table, 
-            reference=$FILE_PR2.fasta, taxonomy=$FILE_PR2.tax, 
-            processors=32, 
-            probs=T)"
+  $MOTHUR "#classify.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta,
+              count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table, 
+              reference=$FILE_PR2.fasta, taxonomy=$FILE_PR2.tax, 
+              processors=32, 
+              probs=T)"
 \end{Verbatim}
 
 (@) **Compute distance matrix**
@@ -438,7 +437,7 @@ $MOTHUR "#classify.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fas
 It is critical to have as few sequences as possible at this step because the computation time is proportionnal to the **square** of the number of sequences.
 
 \begin{Verbatim}
-$MOTHUR "#dist.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta, processors=32)"
+  $MOTHUR "#dist.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta, processors=32)"
 \end{Verbatim}
 
 (@) **Cluster the sequences to create the OTUs**
@@ -446,29 +445,29 @@ $MOTHUR "#dist.seqs(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta, 
 Here we use a 0.02 cutoff corresponding to 98% similarity.
 
 \begin{Verbatim}
-$MOTHUR "#cluster(column=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.dist,
-                  count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table, 
-                  cutoff=0.02, processors=32)"
+  $MOTHUR "#cluster(column=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.dist,
+                    count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table, 
+                    cutoff=0.02, processors=32)"
 \end{Verbatim}
 
 (@) **Classify the OTUs based on the classification of the sequences (see above)**
 
 \begin{Verbatim}
-$MOTHUR "#classify.otu(taxonomy=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.$FILE_PR2_END.wang.taxonomy,
-                       count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table,
-                       list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.list, 
-                       label=0.02, probs=F, basis=sequence)"
+  $MOTHUR "#classify.otu(taxonomy=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.$FILE_PR2_END.wang.taxonomy,
+                         count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table,
+                         list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.list, 
+                         label=0.02, probs=F, basis=sequence)"
 \end{Verbatim}
 
 (@) **Get sequences represnetative of each OTU**
 
 \begin{Verbatim}
-$MOTHUR "#get.oturep(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta,
-                     column=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.dist, 
-                     count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table,
-                     list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.list, 
-                     method=abundance, 
-                     cutoff=0.02)"
+  $MOTHUR "#get.oturep(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta,
+                       column=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.dist, 
+                       count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.count_table,
+                       list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.list, 
+                       method=abundance, 
+                       cutoff=0.02)"
 \end{Verbatim}
 
 (@) **Format the final result in a single synthetic file**
@@ -479,11 +478,11 @@ $MOTHUR "#get.oturep(fasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.fasta,
 * taxonomy
 
 \begin{Verbatim}
-$MOTHUR "#create.database(list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.list,
-          count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.0.02.rep.count_table, 
-          label=0.02, 
-          repfasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.0.02.rep.fasta ,
-          constaxonomy=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.0.02.cons.taxonomy)"
+  $MOTHUR "#create.database(list=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.list,
+            count=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.0.02.rep.count_table, 
+            label=0.02, 
+            repfasta=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.0.02.rep.fasta ,
+            constaxonomy=$PROJECT_18S.uniq.preclust.no_chim.more_than_2.opti_mcc.0.02.cons.taxonomy)"
 \end{Verbatim}
 
 \begin{center}

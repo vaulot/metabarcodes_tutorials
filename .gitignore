@@ -13,3 +13,5 @@ pr2*.*
 !*.database
 mothur/illumina/~$Mothur tutorial Illumina.pptx
 mothur/illumina/n_seq.txt
+fastq_carbom/filtered/*
+R_dada2/n_seq.txt

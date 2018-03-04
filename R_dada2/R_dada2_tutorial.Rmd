@@ -140,7 +140,9 @@ Note that the primers are degenerated.  Dada2 has an option to remove primers (F
 
 ## Examine the fastQ files
 
-### Construct a list of the fastq files and extract the sample names (start of file name separated by _)
+### Construct a list of the fastq files
+
+It is assumed that the sample names are at the start of file name and separated by _.
 
 ```{r}
 # get a list of all fastq files in the ngs directory and separate R1 and R2
