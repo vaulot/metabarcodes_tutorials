@@ -15,3 +15,9 @@ mothur/illumina/~$Mothur tutorial Illumina.pptx
 mothur/illumina/n_seq.txt
 fastq_carbom/filtered/*
 R_dada2/n_seq.txt
+*.html
+*.rdb
+*.RData
+*.rdx
+*.png
+R_dada2/R_dada2_tutorial_cache/html/__packages

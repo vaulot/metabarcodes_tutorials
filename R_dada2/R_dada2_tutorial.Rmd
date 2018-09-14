@@ -5,19 +5,27 @@ date: '`r format(Sys.time(), "%d %m %Y")`'
 header-includes:
    - \usepackage{color, fancyvrb}
 output:
+  rmdformats::readthedown:
+    highlight: kate
+    number_sections : yes    
   pdf_document: 
     toc: yes
     toc_depth: 2
     number_sections : yes
-
 ---
 
-\RecustomVerbatimEnvironment
-  {Verbatim}{Verbatim}
-  {xleftmargin=5mm, frame=single,formatcom=\color{blue}, fontsize=\small}
+```{r setup}
+  knitr::opts_chunk$set(fig.width=6, 
+                        fig.height=6, 
+                        eval=TRUE, 
+                        cache=TRUE,
+                        echo=TRUE,
+                        prompt=FALSE,
+                        tidy=TRUE,
+                        comment=NA,
+                        message=FALSE,
+                        warning=FALSE)
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Aim
@@ -27,7 +35,7 @@ This tutorial explain how to process Illumina data with the Dada2 suite as imple
 # Directory structure
 
 * **/fastq_carbom** : fastq files from the carbom cruise
-* **/databases** : PR2 database files (see Prerequisite belwo)
+* **/databases** : PR2 database files (see Prerequisite below)
 * **/dada2** : This tutorial for Illumina files
 
 # Downloads
@@ -47,6 +55,7 @@ install.packages("ggplot2")   # To do plots
 install.packages("readxl")    # To read excel files
 install.packages("tibble")    # To work with data frames
 install.packages("tidyr")    # To work with data frames
+install.packages("readr")    # To read and write files
 
 source("https://bioconductor.org/biocLite.R")
 biocLite('dada2')             # metabarcode data analysis
@@ -61,9 +70,10 @@ Download and install in the **/databases directory**
 
 # Data used
 
-\begin{center}
-\includegraphics[height=200px]{../fastq_carbom/carbom_cruise}
-\end{center}
+```{r , out.width='50%', fig.align="center"}
+knitr::include_graphics('../fastq_carbom/carbom_cruise.png')
+```
+
 
 The samples originate from the CARBOM cruise (2013) off Brazil.  
 
@@ -78,9 +88,9 @@ The data consist of the picoplankton samples from one transect and fastq files h
 
 ## References
 
-* Gérikas Ribeiro C, Marie D, Lopes dos Santos A, Pereira Brandini F, Vaulot D. (2016). Estimating microbial populations by flow cytometry: Comparison between instruments. Limnol Oceanogr Methods 14:750–758.
-* Gérikas Ribeiro C, Lopes dos Santos A, Marie D, Brandini P, Vaulot D. (2018). Relationships between photosynthetic eukaryotes and nitrogen-fixing cyanobacteria off Brazil. ISME J in press.
-* Gérikas Ribeiro C, Lopes dos Santos A, Marie D, Helena Pellizari V, Pereira Brandini F, Vaulot D. (2016). Pico and nanoplankton abundance and carbon stocks along the Brazilian Bight. PeerJ 4:e2587.
+* Gerikas Ribeiro C, Marie D, Lopes dos Santos A, Pereira Brandini F, Vaulot D. (2016). Estimating microbial populations by flow cytometry: Comparison between instruments. Limnol Oceanogr Methods 14:750–758.
+* Gerikas Ribeiro C, Lopes dos Santos A, Marie D, Brandini P, Vaulot D. (2018). Relationships between photosynthetic eukaryotes and nitrogen-fixing cyanobacteria off Brazil. ISME J in press.
+* Gerikas Ribeiro C, Lopes dos Santos A, Marie D, Helena Pellizari V, Pereira Brandini F, Vaulot D. (2016). Pico and nanoplankton abundance and carbon stocks along the Brazilian Bight. PeerJ 4:e2587.
 
 
 # Tutorial description
@@ -99,6 +109,7 @@ The data consist of the picoplankton samples from one transect and fastq files h
   library("tidyr")
   library("readxl")
   library("tibble")
+  library("readr")
 
   library("kableExtra") # necessary for nice table formatting with knitr
 ```
@@ -107,20 +118,15 @@ The data consist of the picoplankton samples from one transect and fastq files h
 
 ```{r}
 # change the following line to the path where you unzipped the tutorials
-  tutorial_dir <- "C:/Users/vaulot/Google Drive/Scripts/"
-
-# working directory in R_dada2
-  working_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/R_dada2")
-  setwd(working_dir)
 
 # ngs directory
-  ngs_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/fastq_carbom")
+  ngs_dir <- "../fastq_carbom"
 ```
   
 
 ## Primers
 
-Note that the primers are degenerated.  Dada2 has an option to remove primers (FilterandTrim) but this function will not accept degeneracy.
+Note that the primers are degenerated.  Dada2 has an option to remove primers (FilterandTrim) but this function will not accept degeneracy.  
 
 ```{r}
   primer_set_fwd = c("CCAGCAGCCGCGGTAATTCC", "CCAGCACCCGCGGTAATTCC", 
@@ -177,7 +183,7 @@ It is assumed that the sample names are at the start of file name and separated 
  } 
 # display number of sequences and write data to small file
   knitr::kable(df)
-  # write.table(df, file = paste0(working_dir,"/n_seq.txt"), 
+  # write.table(df, file = "n_seq.txt", 
   #             sep="\t", row.names = FALSE, na="", quote=FALSE)
 
 # plot the histogram with number of sequences
@@ -186,7 +192,7 @@ It is assumed that the sample names are at the start of file name and separated 
         xlim(0, 2000)
 ```
 
-### Plot quality fo reads
+### Plot quality for reads
 
 ```{r}
  for(i in 1:length(fns)) { 
@@ -197,15 +203,19 @@ It is assumed that the sample names are at the start of file name and separated 
   # Only plot on screen for first 2 files  
     if (i <= 2) {print(p1)}
     
-  # save the file as a pdf file 
-    p1_file <- paste0(ngs_dir,"/qual/",basename(fns[i]),".pdf")
-    ggsave( plot=p1, filename= p1_file, 
-              device = "pdf", width = 15, height = 15, scale=1, units="cm")
+  # save the file as a pdf file (uncomment to execute)
+    # p1_file <- paste0(ngs_dir,"/qual/",basename(fns[i]),".pdf")
+    # ggsave( plot=p1, filename= p1_file, 
+    #           device = "pdf", width = 15, height = 15, scale=1, units="cm")
   }   
 
 ```
 
 ## Filter and Trim the reads 
+
+**Note** : We recommend to use **cutadapt** to remove the primers : http://cutadapt.readthedocs.io/en/stable/guide.html#.  
+The program is really very powerful.
+
 
 ### Create names for the filtered files in filtered/ subdirectory of the fastq carbom
 ```{r}
@@ -352,8 +362,7 @@ In our case there were no chimeras found.  It is noteworthy that the total numbe
 ### Assigning taxonomy
 
 ```{r}
-    pr2_file <- paste0(tutorial_dir, 
-                       "metabarcodes_tutorials/databases/pr2_version_4.72_dada2_Eukaryota.fasta.gz")
+    pr2_file <- paste0("../databases/pr2_version_4.72_dada2_Eukaryota.fasta.gz")
     taxa <- assignTaxonomy(seqtab.nochim, refFasta=pr2_file,  
                            taxLevels = PR2_tax_levels,
                            minBoot = 0, outputBootstraps = TRUE,
@@ -363,12 +372,9 @@ In our case there were no chimeras found.  It is noteworthy that the total numbe
 ### Export data as produced by Dada2
 
 ```{r}
-    write.table(taxa$tax, file = paste0(working_dir,"/taxa.txt"), sep="\t", 
-                row.names = TRUE, na="", quote=FALSE, append=FALSE)   
-    write.table(taxa$boot, file = paste0(working_dir,"/taxa_boot.txt"), sep="\t", 
-                row.names = TRUE, na="", quote=FALSE, append=FALSE) 
-    write.table(seqtab.nochim, file = paste0(working_dir,"/seqtab.txt"), sep="\t", 
-                row.names = TRUE, na="", quote=FALSE, append=FALSE) 
+  write_tsv(as.tibble(taxa$tax), path = "taxa.txt")  
+  write_tsv(as.tibble(taxa$boot), path = "taxa_boot.txt")
+  write_tsv(as.tibble(seqtab.nochim), path = "seqtab.txt")
 ```
 
 ### Changing OTU names from sequence to Otuxxxx
@@ -431,7 +437,7 @@ ps_dada2 <- phyloseq(otu_table(as.matrix(seqtab.nochim_18S), taxa_are_rows=TRUE)
 
 ```{r}
 # read the mothur database from Excel file
-  mothur_file <- paste0( tutorial_dir, "metabarcodes_tutorials/Comparison different methods 1.0.xlsx")
+  mothur_file <- "../Comparison different methods 1.0.xlsx"
   mothur_database <- read_excel(mothur_file, sheet="mothur")
 # need to remove empty rows
   mothur_database <- mothur_database %>% filter(!is.na(OTUNumber))
