@@ -49,7 +49,7 @@ biocLite('Biostrings')        # needed for fastq.geometry
 ### Follow the step by step instructions :
 
 * [Mothur 454](https://github.com/vaulot/metabarcodes_tutorials/blob/master/mothur/454/Mothur%20tutorial%20454.pptx)
-* [Mothur Illumina](https://vaulot.github.io/tutorials/R_dada2_tutorial.html)
+* [Mothur Illumina](https://github.com/vaulot/metabarcodes_tutorials/blob/master/mothur/illumina/tutorial_mothur_illumina.pdf)
 * [R Dada2 Illumina](https://vaulot.github.io/tutorials/R_dada2_tutorial.html)
 
 ### Issues or questions
