@@ -1,5 +1,5 @@
 ---
-title: "Tutorial - R Dada2 metabarcode analyis"
+title: "Tutorial - Compare results of Dada2 vs Mothur"
 author: "Daniel Vaulot"
 date: '`r format(Sys.time(), "%d %m %Y")`'
 header-includes:
@@ -30,7 +30,8 @@ output:
 
 # Aim
 
-This tutorial explain how to process Illumina data with the Dada2 suite as implemented in R (dada2 is also implemented in Qiime).  It is adapted from : https://benjjneb.github.io/dada2/tutorial.html
+Compare the results of the analysis by mothur vs dada2
+* **Prerequisite** : the R_dada2_tutorial must have been run before
 
 # Directory structure
 
@@ -43,59 +44,7 @@ Relative to the main directory from GitHub
 * **../databases** : PR2 database files (contains the latest PR2 database formatted for dada2 - https://github.com/vaulot/pr2_database/releases/)
 * **../blast** : BLAST files output
 * **../img** : Images
-* **../R_dada2** : This tutorial for Illumina files
-
-# Downloads
-
-Install the following software :  
-
-* R : https://pbil.univ-lyon1.fr/CRAN/
-
-* R studio : https://www.rstudio.com/products/rstudio/download/#download
-
-* Download and install the following libraries by running under R studio the following lines
-
-```R
-install.packages("dplyr")     # To manipulate dataframes
-install.packages("tibble")    # To work with data frames
-install.packages("tidyr")    # To work with data frames
-
-install.packages("readr")    # To read and write files
-install.packages("readxl")    # To read excel files
-
-install.packages("stringr")   # To manipulate strings
-install.packages("ggplot2")   # To do plots
-
-source("https://bioconductor.org/biocLite.R")
-biocLite('dada2')             # metabarcode data analysis
-biocLite('phyloseq')          # metabarcode data analysis
-biocLite('Biostrings')        # needed for fastq.geometry
-
-```
-
-# Data used
-
-```{r , out.width='50%', fig.align="center"}
-knitr::include_graphics('../img/carbom_cruise.png')
-```
-
-
-The samples originate from the CARBOM cruise (2013) off Brazil.  
-
-Samples have been sorted by flow cytometry and 3 genes have been PCR amplified :  
-
-* 18S rRNA - V4 region
-* 16S rNA with plastid
-* nifH
-
-The PCR products have been sequenced by 1 run of Illumina 2*250 bp.
-The data consist of the picoplankton samples from one transect and fastq files have been subsampled with 1000 sequences per sample.
-
-## References
-
-* Gerikas Ribeiro C, Marie D, Lopes dos Santos A, Pereira Brandini F, Vaulot D. (2016). Estimating microbial populations by flow cytometry: Comparison between instruments. Limnol Oceanogr Methods 14:750–758.
-* Gerikas Ribeiro C, Lopes dos Santos A, Marie D, Brandini P, Vaulot D. (2018). Relationships between photosynthetic eukaryotes and nitrogen-fixing cyanobacteria off Brazil. ISME J in press.
-* Gerikas Ribeiro C, Lopes dos Santos A, Marie D, Helena Pellizari V, Pereira Brandini F, Vaulot D. (2016). Pico and nanoplankton abundance and carbon stocks along the Brazilian Bight. PeerJ 4:e2587.
+* **../R_dada2** : This tutorial
 
 
 # Tutorial description
@@ -109,15 +58,12 @@ The data consist of the picoplankton samples from one transect and fastq files h
   library("Biostrings")
   
   library("ggplot2")
-
+  library("stringr")
   library("dplyr")
   library("tidyr")
-  library("tibble")
-
   library("readxl")
+  library("tibble")
   library("readr")
-
-  library("stringr")
 
   library("kableExtra") # necessary for nice table formatting with knitr
 ```
@@ -127,12 +73,8 @@ The data consist of the picoplankton samples from one transect and fastq files h
 ```{r}
 # change the following line to the path where you unzipped the tutorials
 
-
-  fastq_dir <- "../fastq/"              # fastq directory
-  filtered_dir <- "../fastq_filtered/"  # fastq filtered
-  qual_dir <- "../qual_pdf/"            # qual pdf
-  dada2_dir <- "../dada2/"              # dada2 results
-  database_dir <- "../databases/"       # databases
+# ngs directory
+  ngs_dir <- "../fastq_carbom"
 ```
   
 
@@ -164,7 +106,7 @@ It is assumed that the sample names are at the start of file name and separated 
 
 ```{r}
 # get a list of all fastq files in the ngs directory and separate R1 and R2
-  fns <- sort(list.files(fastq_dir, full.names = TRUE)) 
+  fns <- sort(list.files(ngs_dir, full.names = TRUE)) 
   fns <- fns[str_detect( basename(fns),".fastq")]
   fns_R1 <- fns[str_detect( basename(fns),"R1")]
   fns_R2 <- fns[str_detect( basename(fns),"R2")]
@@ -216,9 +158,9 @@ It is assumed that the sample names are at the start of file name and separated 
     if (i <= 2) {print(p1)}
     
   # save the file as a pdf file (uncomment to execute)
-    p1_file <- paste0(qual_pdf_dir, basename(fns[i]),"_qual.pdf")
-    ggsave( plot=p1, filename= p1_file,
-              device = "pdf", width = 15, height = 15, scale=1, units="cm")
+    # p1_file <- paste0(ngs_dir,"/qual/",basename(fns[i]),".pdf")
+    # ggsave( plot=p1, filename= p1_file, 
+    #           device = "pdf", width = 15, height = 15, scale=1, units="cm")
   }   
 
 ```
@@ -229,10 +171,12 @@ It is assumed that the sample names are at the start of file name and separated 
 The program is really very powerful.
 
 
-### Create names for the filtered files in ../fast_filtered/
+### Create names for the filtered files in filtered/ subdirectory of the fastq carbom
 ```{r}
-  filt_R1 <- file.path(filtered_dir, paste0(sample.names, "_R1_filt.fastq"))
-  filt_R2 <- file.path(filtered_dir, paste0(sample.names, "_R2_filt.fastq"))
+  filt_dir <- file.path(ngs_dir, "filtered")
+
+  filt_R1 <- file.path(filt_dir, paste0(sample.names, "_R1_filt.fastq"))
+  filt_R2 <- file.path(filt_dir, paste0(sample.names, "_R2_filt.fastq"))
 ```  
   
 ### Removing the primers by sequence
@@ -372,7 +316,7 @@ In our case there were no chimeras found.  It is noteworthy that the total numbe
 ### Assigning taxonomy
 
 ```{r}
-    pr2_file <- paste0(database_dir, "pr2_version_4.11.0_dada2.fasta.gz")
+    pr2_file <- paste0("../databases/pr2_version_4.72_dada2_Eukaryota.fasta.gz")
     taxa <- assignTaxonomy(seqtab.nochim, refFasta=pr2_file,  
                            taxLevels = PR2_tax_levels,
                            minBoot = 0, outputBootstraps = TRUE,
@@ -382,9 +326,9 @@ In our case there were no chimeras found.  It is noteworthy that the total numbe
 ### Export data as produced by Dada2
 
 ```{r}
-  write_tsv(as.tibble(taxa$tax), path = str_c(dada2_dir, "taxa.txt"))  
-  write_tsv(as.tibble(taxa$boot), path = str_c(dada2_dir, "taxa_boot.txt"))
-  write_tsv(as.tibble(seqtab.nochim), path = str_c(dada2_dir, "seqtab.txt"))
+  write_tsv(as.tibble(taxa$tax), path = "taxa.txt")  
+  write_tsv(as.tibble(taxa$boot), path = "taxa_boot.txt")
+  write_tsv(as.tibble(seqtab.nochim), path = "seqtab.txt")
 ```
 
 ### Changing OTU names from sequence to Otuxxxx
@@ -425,7 +369,7 @@ Remember that we sequenced 3 genes (18S, 16S plastid and nifH.  We remove the se
     seqtab.nochim_18S <- seqtab.nochim_trans[taxa_boot$Supergroup >= bootstrap_min,]
   
   # Create a database like file for dada2
-    dada2_database <-   bind_cols(taxa_tax_18S, seqtab.nochim_18S)
+    dada2_database <-   cbind(taxa_tax_18S, seqtab.nochim_18S)
 
 ```
 
