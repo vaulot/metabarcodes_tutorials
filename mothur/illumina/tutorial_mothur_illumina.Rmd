@@ -29,8 +29,8 @@ This tutorial explain how to process Illumina sequences.
 
 # Directory structure
 
-* **/fastq_carbom** : fastq files from the carbom cruise
-* **/databases** : Silva alignement and PR2 database files (see Prerequisite above)
+* **/fastq** : fastq files from the carbom cruise
+* **/databases** : Silva alignement and PR2 database files (downloaded from https://github.com/pr2database/pr2database/releases)
 * **/mothur/illumina** : Tutorial for Illumina files (carbom cruise)
 * **/mothur/454** : Tutorial with 454 files
 
@@ -40,7 +40,9 @@ Install the following software :
 
 * Terminal program.  For Windows MobaXterm is highly recommended : https://mobaxterm.mobatek.net/
 
-* Notepad++ if you are using windows : https://notepad-plus-plus.org/
+* FTP client.  For Windows WinScp is recommended : https://winscp.net
+
+* Text editor.  If you are using windows Notepad++ : https://notepad-plus-plus.org/
 
 * Mothur : https://github.com/mothur/mothur/releases/tag/v1.39.5
 
@@ -62,14 +64,10 @@ biocLite('dada2')             # metabarcode data analysis
 
 ```
 
-Download and install in the **/databases directory**
-
-* PR2 database : https://github.com/vaulot/pr2_database/releases/download/4.7.2/pr2_version_4.7.2_mothur.zip . 
-
 # Data used
 
 \begin{center}
-\includegraphics[height=200px]{../../fastq_carbom/carbom_cruise}
+\includegraphics[height=200px]{../../img/carbom_cruise}
 \end{center}
 
 The samples originate from the CARBOM cruise (2013) off Brazil.  
@@ -90,97 +88,9 @@ The data consist of the picoplankton samples from one transect and fastq files h
 
 # Pre visualization of the fastq files with R
 
-* Load the script file from **/mothur/illumina/R_analyze_fastq.R**
+This now moved to the dada2 tutorial : https://vaulot.github.io/tutorials/R_dada2_tutorial.html#examine-the-fastq-files
 
-**Load the necessary libraries**
-
-```{r, results='hide', message=FALSE}
-  library("dada2")
-  library("Biostrings") # To manipulate DNA sequences
-  
-  library("ggplot2")
-  library("stringr")
-  library("dplyr")
-```
-
-
-(1) **Set up the directories for the analysis**
-```{r}  
-  # change the following line to the path where you unzipped the tutorials
-    tutorial_dir <- "C:/Users/vaulot/Google Drive/Scripts/"
-  
-  # set up working directory
-    working_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/mothur/illumina")
-    setwd(working_dir)
-  
-  # ngs directory
-    ngs_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/fastq_carbom")
-
-  # get a list of all fastq files in the ngs directory and separate R1 and R2
-    fns <- sort(list.files(ngs_dir, full.names = TRUE)) 
-    fns <- fns[str_detect( basename(fns),".fastq")]
-    fns_R1 <- fns[str_detect( basename(fns),"R1")]
-    fns_R2 <- fns[str_detect( basename(fns),"R2")]
-```
-
-(2) **Compute number of paired reads in each fastq file**
-
-Note that the data have been sub-sampled at 1000 reads per file.
-```{r, message=FALSE, warning=FALSE}  
-  # create an empty data frame  
-    df <- data.frame()  
-
-  # loop throuh all the R1 files (no need to go through R2 which should be the same) 
-
-    for(i in 1:length(fns_R1)) { 
-      
-      # use the dada2 function fastq.geometry
-        geom <- fastq.geometry(fns_R1[i])
-        
-      # extract the information on number of sequences and file name 
-        df_one_row <- data.frame (n_seq=geom[1], file_name=basename(fns[i]) )
-        
-      # add one line to data frame
-        df <- bind_rows(df, df_one_row)
-   } 
-  # display number of sequences and write data to small file
-    df
-    write.table(df, file = paste0(working_dir,"/n_seq.txt"), sep="\t", row.names = FALSE, na="", quote=FALSE)
-
-  # plot the histogram with number of sequences
-    ggplot(df, aes(x=n_seq)) + 
-          geom_histogram( alpha = 0.5, position="identity", binwidth = 10) +
-          xlim(0, 2000)
-```
-
-\pagebreak
-
-(3) **Plot the quality fo each fastq file**
-```{r}  
-  # loop throuh all the R1 files (no need to go through R2 which should be the same) 
-
-   for(i in 1:2) { 
-     
-    # Use dada2 function to plot quality
-      p1 <- plotQualityProfile(fns[i])
-      
-    # Only plot on screen for first 2 files  
-      print(p1)
-      
-    # save the file as a pdf file 
-      p1_file <- paste0(ngs_dir,"/qual/",basename(fns[i]),".pdf")
-      ggsave( plot=p1, filename= p1_file, 
-                device = "pdf", width = 15, height = 15, scale=1, units="cm")
-    }   
-```  
-
-(4) **Clean up memory**
-
-It is necessary to clean up the memory because the fastq files are quite big and occupy a lot of memory during processing
-```{r}
-  rm(list=ls())
-```  
-\pagebreak
+You can the following script : /mothur/illumina/R_analyze_fastq.R
 
 # Analysis with mothur
 
@@ -496,5 +406,5 @@ Here we use a 0.02 cutoff corresponding to 98% similarity.
 
 # Alternative strategies
 
-* Use the R dada2 package : https://benjjneb.github.io/dada2/tutorial.html
+* Use the R dada2 package : https://benjjneb.github.io/dada2/tutorial.html and https://vaulot.github.io/tutorials/R_dada2_tutorial.html
 * Use vsearch : https://github.com/torognes/vsearch/wiki/VSEARCH-pipeline

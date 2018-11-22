@@ -5,15 +5,14 @@ carbom.scrap.*
 *.qual
 *.accnos
 carbom.trim.*
-fastq_carbom/qual/*.*
+qual_pdf/*.*
 *.logfile
 carbom_18S.*
-pr2*.*
 *.8mer
 !*.database
-mothur/illumina/~$Mothur tutorial Illumina.pptx
+~*
 mothur/illumina/n_seq.txt
-fastq_carbom/filtered/*
+fastq_filtered/*
 R_dada2/n_seq.txt
 *.html
 *.rdb
@@ -21,3 +20,12 @@ R_dada2/n_seq.txt
 *.rdx
 *.png
 R_dada2/R_dada2_tutorial_cache/html/__packages
+.Rproj.user
+.Rhistory
+blast/CARBOM_ASV.fasta
+dada2/seqtab.txt
+dada2/taxa.txt
+dada2/taxa_boot.txt
+*.Rproj
+*cache
+*files

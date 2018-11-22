@@ -2,7 +2,7 @@
 #      Set default directory
 #==========================================================================================================================
 
-# set.dir(tempdefault=C:\Daniel\PowerPoint and Talks\Cours Chili 2016\Mothur tutorial)
+# set.dir(tempdefault=C:\My tem file)
 
 #==========================================================================================================================
 # Separate sequences based on primers and barcodes and put in groups (perfect match)

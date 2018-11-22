@@ -12,14 +12,14 @@
 # Set up directories --------------------------------------------------------
   
   # change the following line to the path where you unzipped the tutorials
-    tutorial_dir <- "C:/Users/vaulot/Google Drive/Scripts/"
+    tutorial_dir <- "C:/xxx/Scripts/metabarcodes_tutorials/"
   
   # set up working directory
-    working_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/mothur/illumina")
+    working_dir <- paste0( tutorial_dir, "mothur/illumina")
     setwd(working_dir)
   
   # ngs directory
-    ngs_dir <- paste0( tutorial_dir, "metabarcodes_tutorials/fastq_carbom")
+    ngs_dir <- paste0( tutorial_dir, "fastq_carbom")
 
   # get a list of all fastq files in the ngs directory and separate R1 and R2
     fns <- sort(list.files(ngs_dir, full.names = TRUE)) 

@@ -14,7 +14,7 @@ output:
     number_sections : yes
 ---
 
-```{r setup}
+```{r setup, echo=FALSE}
   knitr::opts_chunk$set(fig.width=6, 
                         fig.height=6, 
                         eval=TRUE, 
@@ -56,15 +56,17 @@ Install the following software :
 * Download and install the following libraries by running under R studio the following lines
 
 ```R
-install.packages("dplyr")     # To manipulate dataframes
-install.packages("tibble")    # To work with data frames
-install.packages("tidyr")    # To work with data frames
-
-install.packages("readr")    # To read and write files
+install.packages("readr")     # To read and write files
 install.packages("readxl")    # To read excel files
 
+install.packages("dplyr")     # To manipulate dataframes
+install.packages("tibble")    # To work with data frames
+install.packages("tidyr")     # To work with data frames
+
 install.packages("stringr")   # To manipulate strings
+
 install.packages("ggplot2")   # To do plots
+
 
 source("https://bioconductor.org/biocLite.R")
 biocLite('dada2')             # metabarcode data analysis
@@ -75,7 +77,7 @@ biocLite('Biostrings')        # needed for fastq.geometry
 
 # Data used
 
-```{r , out.width='50%', fig.align="center"}
+```{r , out.width='50%', fig.align="center", echo=FALSE}
 knitr::include_graphics('../img/carbom_cruise.png')
 ```
 
@@ -128,11 +130,17 @@ The data consist of the picoplankton samples from one transect and fastq files h
 # change the following line to the path where you unzipped the tutorials
 
 
-  fastq_dir <- "../fastq/"              # fastq directory
+  fastq_dir <-    "../fastq/"           # fastq directory
   filtered_dir <- "../fastq_filtered/"  # fastq filtered
-  qual_dir <- "../qual_pdf/"            # qual pdf
-  dada2_dir <- "../dada2/"              # dada2 results
+  qual_dir <-     "../qual_pdf/"        # qual pdf
+  dada2_dir <-    "../dada2/"           # dada2 results
+  blast_dir <-    "../blast/"           # blast2 results
   database_dir <- "../databases/"       # databases
+  
+  dir.create(filtered_dir)
+  dir.create(qual_dir)
+  dir.create(dada2_dir)
+  dir.create(blast_dir)
 ```
   
 
@@ -176,11 +184,11 @@ It is assumed that the sample names are at the start of file name and separated 
 ```
 ### Compute number of paired reads
 
-```{r, warning=FALSE}
+```{r fastq_reads, warning=FALSE}
 # create an empty data frame  
   df <- data.frame()  
 
-# loop throuh all the R1 files (no need to go through R2 which should be the same) 
+# loop through all the R1 files (no need to go through R2 which should be the same) 
 
   for(i in 1:length(fns_R1)) { 
     
@@ -206,7 +214,7 @@ It is assumed that the sample names are at the start of file name and separated 
 
 ### Plot quality for reads
 
-```{r}
+```{r fastq_quality}
  for(i in 1:length(fns)) { 
    
   # Use dada2 function to plot quality
@@ -216,7 +224,7 @@ It is assumed that the sample names are at the start of file name and separated 
     if (i <= 2) {print(p1)}
     
   # save the file as a pdf file (uncomment to execute)
-    p1_file <- paste0(qual_pdf_dir, basename(fns[i]),"_qual.pdf")
+    p1_file <- paste0(qual_dir, basename(fns[i]),".qual.pdf")
     ggsave( plot=p1, filename= p1_file,
               device = "pdf", width = 15, height = 15, scale=1, units="cm")
   }   
@@ -225,23 +233,26 @@ It is assumed that the sample names are at the start of file name and separated 
 
 ## Filter and Trim the reads 
 
-**Note** : We recommend to use **cutadapt** to remove the primers : http://cutadapt.readthedocs.io/en/stable/guide.html#.  
+The dada2 algorithm requires primers to be removed prior to processing.
+
+
+* Using dada2 there are 2 possibilities
+    - Remove by sequence, but dada2 does not allow for ambiguities
+    - Remove by position, which is not a problem for Illumina sequences but is a problem for 454
+* For complex situation we recommend to use **cutadapt** to remove the primers : http://cutadapt.readthedocs.io/en/stable/guide.html#.  
 The program is really very powerful.
 
-
-### Create names for the filtered files in ../fast_filtered/
+### Create names for the filtered files in ../fastq_filtered/
 ```{r}
   filt_R1 <- file.path(filtered_dir, paste0(sample.names, "_R1_filt.fastq"))
   filt_R2 <- file.path(filtered_dir, paste0(sample.names, "_R2_filt.fastq"))
 ```  
   
-### Removing the primers by sequence
-
-The dada2 algorithm requires primers to be removed prior to processing.
+### Removing the primers by sequence (do not execute this step)
 
 The next piece of code could be used to remove the primers by **sequence**.  The dada2 package does not allow for primer degeneracy.  Since our forward primer is degenerated at two positions, all four combinations need to be tested.  However it will be necessary to re-assemble after that the 4 fastQ files created (which has not to done).  So the better strategy is to remove primer by trunction (see next step).
 
-```{r}
+```{r, eval = FALSE}
 # On Windows set multithread=FALSE  
 
   out_all <-data.frame(id=length(fns_R1))
@@ -255,16 +266,10 @@ The next piece of code could be used to remove the primers by **sequence**.  The
 ```
 
 
-
-```{r}
+```{r, eval = FALSE, fig.cap="Number of sequences recognized by each primer combination."}
   knitr::kable(out_all,"latex")%>%
          kable_styling(bootstrap_options = "striped", font_size = 7)
 ```
-
-
-
-
-The table shows the number of sequences recognized by each primer combination.
 
 
 ###  Remove primers by truncation and filter
@@ -284,7 +289,7 @@ Filter all sequences with N, truncate R2 to 240 bp
 
 The error rates are plotted.
 
-```{r}
+```{r error_rates}
   err_R1 <- learnErrors(filt_R1, multithread=FALSE)
 
   plotErrors(err_R1, nominalQ=TRUE)
@@ -371,17 +376,21 @@ In our case there were no chimeras found.  It is noteworthy that the total numbe
 
 ### Assigning taxonomy
 
-```{r}
-    pr2_file <- paste0(database_dir, "pr2_version_4.11.0_dada2.fasta.gz")
+This step is quite long...  If you want to skip please go to next step.
+
+```{r assign_taxa, eval=FALSE}
+    pr2_file <- paste0(database_dir, "pr2_version_4.72_dada2.fasta.gz")
     taxa <- assignTaxonomy(seqtab.nochim, refFasta=pr2_file,  
                            taxLevels = PR2_tax_levels,
                            minBoot = 0, outputBootstraps = TRUE,
                            verbose = TRUE)
+    saveRDS(taxa, str_c(dada2_dir, "CARBOM.taxa.rds"))
 ```
 
 ### Export data as produced by Dada2
 
 ```{r}
+  taxa <-  readRDS(str_c(dada2_dir, "CARBOM.taxa.rds"))  
   write_tsv(as.tibble(taxa$tax), path = str_c(dada2_dir, "taxa.txt"))  
   write_tsv(as.tibble(taxa$boot), path = str_c(dada2_dir, "taxa_boot.txt"))
   write_tsv(as.tibble(seqtab.nochim), path = str_c(dada2_dir, "seqtab.txt"))
@@ -426,13 +435,77 @@ Remember that we sequenced 3 genes (18S, 16S plastid and nifH.  We remove the se
   
   # Create a database like file for dada2
     dada2_database <-   bind_cols(taxa_tax_18S, seqtab.nochim_18S)
+    write_tsv(dada2_database, str_c(dada2_dir, "CARBOM_dada2.database.tsv"))
+
+```
+
+### Write FASTA file for BLAST analysis
+
+Use the Biostrings library
+
+```{r }
+  df <-  dada2_database %>%  mutate(sequence = str_replace_all(sequence, "(-|\\.)",""))
+
+  seq_out <- Biostrings::DNAStringSet(df$sequence)
+
+  names(seq_out) <- str_c(df$OTUNumber,
+                                df$Supergroup,
+                                df$Division,
+                                df$Class,
+                                df$Order,
+                                df$Family,
+                                df$Genus,
+                                df$Species,
+                                sep="|")
+
+  Biostrings::writeXStringSet(seq_out, str_c(blast_dir, "CARBOM_ASV.fasta"), compress=FALSE, width = 20000)
+
+```
+
+This file can be sent to a server and a BLAST analysis can be done using the following qsub file
+
+```
+
+#!/bin/bash
+# Commands starting with  '#$' are interpreted by SGE
+# Shell to be used for the job
+#$ -S /bin/bash
+# User to be informed
+#$ -M vaulot@sb-roscoff.fr
+# Export all environment variable
+#$ -V
+# Send a message by email  at beginning (b), end (e) and abort (a) of job
+#$ -m bea
+# Standard output.  Can use '-j y' to add stderr with stdout
+#$ -o repl
+# Send the commande from the curent directory where the script reside
+#$ -cwd
+# Define environmental variables
+
+# submitted with
+# qsub -q short.q qsub_blast_antar.sh
+
+# Replace the next line by the location of the directory where you have your data
+DIR_PROJECT="/projet/sbr/ccebarcodep1408/workshop_nz_2018/blast/"
+
+cd $DIR_PROJECT
+
+FILE="CARBOM_ASV"
+
+FASTA=$DIR_PROJECT$FILE".fasta"
+BLAST_TSV=$DIR_PROJECT$FILE".blast.tsv"
+
+OUT_FMT="6 qseqid sseqid sacc stitle sscinames staxids sskingdoms sblastnames pident slen length mismatch gapopen qstart qend sstart send evalue bitscore"
+
+blastn -max_target_seqs 100 -evalue 1.00e-10 -query $FASTA -out $BLAST_TSV -db /db/blast/all/nt -outfmt "$OUT_FMT"
 
 ```
 
 
+
 ## Phyloseq
 
-### Create a phyloseq object for dada2
+* Create and save a phyloseq object from dada2 results
 
 ```{r}
 samdf <- data.frame(sample_name=sample.names)
@@ -441,139 +514,6 @@ rownames(samdf) <- sample.names
 ps_dada2 <- phyloseq(otu_table(as.matrix(seqtab.nochim_18S), taxa_are_rows=TRUE), 
                sample_data(samdf), 
                tax_table(as.matrix(select(taxa_tax_18S, - sequence, -OTUNumber))))
+saveRDS(ps_dada2,str_c(dada2_dir, "CARBOM_phyloseq.rds"))
 ```
-
-### Create a phyloseq object for the mothur results
-
-```{r}
-# read the mothur database from Excel file
-  mothur_file <- "../Comparison different methods 1.0.xlsx"
-  mothur_database <- read_excel(mothur_file, sheet="mothur")
-# need to remove empty rows
-  mothur_database <- mothur_database %>% filter(!is.na(OTUNumber))
-
-# create the taxonomy matrix  
-  mothur_tax <- str_split(mothur_database$OTUConTaxonomy, ";", 9, simplify = TRUE)
-# the last column is empty so remove  
-  mothur_tax <- mothur_tax[,1:8 ]   
-  
-# give row names and column names
-  colnames(mothur_tax) <- PR2_tax_levels
-  rownames(mothur_tax) <- mothur_database$OTUNumber 
-  
-# replace in the database, the unique taxonomy column by 8 columns
-  mothur_database <- cbind(mothur_database, mothur_tax)
-  mothur_database <- mothur_database %>% select(-OTUConTaxonomy)
- 
-# create the otu_table
-  mothur_otu <- select(mothur_database, ends_with("p"),-Supergroup)
-  rownames(mothur_otu) <- mothur_database$OTUNumber
-  mothur_otu <- as.matrix(mothur_otu)
-
-# create the phyloseq for mothur  
-  ps_mothur <- phyloseq(otu_table(mothur_otu, taxa_are_rows=TRUE), 
-               sample_data(samdf), 
-               tax_table(mothur_tax))
-```
-
-### Compare at the division level
-
-```{r}
-  # remove Lobosa only found in Mothur
-  ps_mothur_common <- subset_taxa(ps_mothur, !(Division %in% c("Lobosa")))
-  
-  plot_bar(ps_mothur_common, fill = "Division") + 
-    geom_bar(aes(color=Division, fill=Division), stat="identity", position="stack") +
-    ggtitle("Mothur")
-  plot_bar(ps_dada2, fill = "Division") + 
-    geom_bar(aes(color=Division, fill=Division), stat="identity", position="stack") +
-    ggtitle("Dada2")
-
-
-```
-## Compare by aggregation
-
-### Transform the database files into the long version
-
-```{r}
-  dada2_long <- dada2_database %>% gather(key = "sample", value="n_seq", num_range(120:200,"p"))  %>%
-                                   select(-sequence)
-  knitr::kable(head(dada2_long), "latex") %>%
-         kable_styling(bootstrap_options = "striped", font_size = 7)
-
-  mothur_long <- mothur_database %>% gather(key = "sample", value="n_seq", num_range(120:200,"p"))  %>%
-                                   select(-contains("repSeq"), -nseq)
-  knitr::kable(head(mothur_long), "latex")  %>%
-         kable_styling(bootstrap_options = "striped", font_size = 7)
-
-
-```
-
-### Aggregate by Division, Class, Genus, Species
-
-```{r}
-  dada2_species <- dada2_long %>% group_by(Division, Class, Genus, Species) %>%
-                                   summarize (n_seq = sum(n_seq))
-  knitr::kable(head(dada2_species))
-
-  mothur_species <- mothur_long %>% group_by(Division, Class, Genus, Species) %>%
-                                   summarize (n_seq = sum(n_seq))
-  knitr::kable(head(mothur_species))
-
-```
-
-### Merge the two lists to comute the relation between mothur and dada2 estimates
-
-```{r, warning=FALSE}
-  both_species <- rbind(dada2_species, mothur_species) %>% 
-                        group_by(Division, Class, Genus, Species) %>%
-                        summarize (n_methods = n()) %>%
-                        left_join(dada2_species) %>%
-                        dplyr::rename (dada2 = n_seq) %>%
-                        left_join(mothur_species) %>%
-                        dplyr::rename (mothur = n_seq) %>%
-                        arrange(desc(dada2))
-  both_class <- both_species %>%  group_by(Division, Class) %>%
-                                  summarise(dada2=sum(dada2, na.rm = TRUE), mothur=sum(mothur, na.rm = TRUE))%>%
-                                  arrange(desc(dada2))
-```
-
-### Plot at Class level
-
-```{r}
-  
-  
-  ggplot(both_class) + geom_point(aes(mothur,dada2)) +
-                         geom_smooth(aes(mothur,dada2), method = "lm", show.legend = TRUE) +
-                         ggtitle ("Class level count")
-  
-  summary(lm(both_class$dada2 ~ both_class$mothur))
-
-```
-  
-### Plot at Species level
-
-
-```{r}
-
-
-  ggplot(both_species) + geom_point(aes(mothur,dada2)) +
-                       geom_smooth(aes(mothur,dada2), method = "lm", show.legend = TRUE) +
-                       ggtitle ("Species level count")
-
-  summary(lm(both_species$dada2 ~ both_species$mothur))
-    
-  species_one_method <- both_species %>% filter(n_methods==1) 
-  knitr::kable(species_one_method, "latex")%>%
-         kable_styling(bootstrap_options = "striped", font_size = 7)
-
-```
-
-
-# Conclusion on the dada2 pipeline
-
-* The dada2 pipeline yieds 1.7 more reads than mothur
-* The number of reads at the species and class levels are correlated
-* It is very fast, the longest step is the taxonomy assignement
-* It offers the advantage of having everything performed under R. 
 
