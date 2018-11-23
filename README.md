@@ -29,12 +29,17 @@ In this repository, you will find a set of tutorials of metabarcode analyses usi
 * Download and install the following libraries by running under R studio the following lines
 
 ```R
-install.packages("dplyr")     # To manipulate dataframes
-install.packages("stringr")   # To strings
-install.packages("ggplot2")   # To do plots
+install.packages("readr")     # To read and write files
 install.packages("readxl")    # To read excel files
+
+install.packages("dplyr")     # To manipulate dataframes
 install.packages("tibble")    # To work with data frames
-install.packages("tidyr")    # To work with data frames
+install.packages("tidyr")     # To work with data frames
+
+install.packages("stringr")   # To manipulate strings
+
+install.packages("ggplot2")   # To do plots
+
 
 source("https://bioconductor.org/biocLite.R")
 biocLite('dada2')             # metabarcode data analysis
@@ -42,12 +47,23 @@ biocLite('phyloseq')          # metabarcode data analysis
 biocLite('Biostrings')        # needed for fastq.geometry
 
 ```
+### Directory structure
+
+* **/fastq** : fastq files
+* **/dada2** : dada2 processed files
+* **/databases** : PR2 database files (contains the latest PR2 database formatted for dada2 - https://github.com/vaulot/pr2_database/releases/)
+* **/img** : Images
+
+* **/R_dada2** : Dada2 tutorial for Illumina files
+* **/mothur/454** : Mothur Tutorial for 454 files
+* **/mothur/illumina** : Mothur Tutorial for Illumina files
 
 ### Follow the step by step instructions :
 
 * [Mothur 454](https://github.com/vaulot/metabarcodes_tutorials/blob/master/mothur/454/Mothur%20tutorial%20454.pptx)
 * [Mothur Illumina](https://github.com/vaulot/metabarcodes_tutorials/blob/master/mothur/illumina/tutorial_mothur_illumina.pdf)
 * [R Dada2 Illumina](https://vaulot.github.io/tutorials/R_dada2_tutorial.html)
+* [Compare analysis with mothur vs. dada2](https://vaulot.github.io/tutorials/R_dada2_vs_mothur.html)
 
 ### Issues or questions
 

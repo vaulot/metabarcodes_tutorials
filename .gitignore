@@ -18,7 +18,6 @@ R_dada2/n_seq.txt
 *.rdb
 *.RData
 *.rdx
-*.png
 R_dada2/R_dada2_tutorial_cache/html/__packages
 .Rproj.user
 .Rhistory
