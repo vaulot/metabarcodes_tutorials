@@ -40,7 +40,7 @@ Relative to the main directory from GitHub
 * **../fastq_filtered** : fastq files after filtration
 * **../qual_pdf** : qual pdf files
 * **../dada2** : dada2 processed files
-* **../databases** : PR2 database files (contains the latest PR2 database formatted for dada2 - https://github.com/vaulot/pr2_database/releases/)
+* **../databases** : PR2 database files (contains PR2 database formatted for dada2 - https://github.com/pr2database/pr2database/releases/)
 * **../blast** : BLAST files output
 * **../img** : Images
 * **../R_dada2** : This tutorial for Illumina files
