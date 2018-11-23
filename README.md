@@ -60,7 +60,7 @@ biocLite('Biostrings')        # needed for fastq.geometry
 
 ### Short introduction to tutorials
 
-* [Dada2 Illumina](https://github.com/vaulot/metabarcodes_tutorials/blob/master/R_dada2/R_dada2_tutorial_beamer.pdf)
+* [Dada2 Illumina](https://github.com/vaulot/metabarcodes_tutorials/raw/master/R_dada2/R_dada2_tutorial_beamer.pdf)
 
 ### Step by step instructions
 
