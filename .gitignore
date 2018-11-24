@@ -14,7 +14,6 @@ carbom_18S.*
 mothur/illumina/n_seq.txt
 fastq_filtered/*
 R_dada2/n_seq.txt
-*.html
 *.rdb
 *.RData
 *.rdx
@@ -27,4 +26,4 @@ dada2/taxa.txt
 dada2/taxa_boot.txt
 *.Rproj
 *cache
-*files
+
