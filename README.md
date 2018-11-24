@@ -68,7 +68,6 @@ biocLite('Biostrings')        # needed for fastq.geometry
 * [Mothur Illumina](https://github.com/vaulot/metabarcodes_tutorials/blob/master/mothur/illumina/tutorial_mothur_illumina.pdf)
 * [R Dada2 Illumina](https://vaulot.github.io/tutorials/R_dada2_tutorial.html)
 * [Compare analysis with mothur vs. dada2](https://vaulot.github.io/tutorials/R_dada2_vs_mothur.html)
-* [Mothur Illumina](https://github.com/vaulot/metabarcodes_tutorials/blob/master/mothur/illumina/tutorial_mothur_illumina.pdf)
 
 ### Issues or questions
 
