@@ -28,3 +28,5 @@ dada2/taxa_boot.txt
 *cache
 *latex*
 
+dada2/CARBOM_ASV_no_taxo.fasta
+dada2/read_numbers_dada2.tsv
