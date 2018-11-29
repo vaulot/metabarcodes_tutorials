@@ -318,8 +318,8 @@ The error rates are plotted.
 ### Sequence-variant inference algorithm to the dereplicated data
    
 ```{r}
-    dada_R1 <- dada(derep_R1, err=err_R1, multithread=FALSE)
-    dada_R2 <- dada(derep_R2, err=err_R2, multithread=FALSE)
+    dada_R1 <- dada(derep_R1, err=err_R1, multithread=FALSE, pool=FALSE)
+    dada_R2 <- dada(derep_R2, err=err_R2, multithread=FALSE, pool=FALSE)
     
     dada_R1[[1]]
     dada_R2[[1]]
@@ -357,7 +357,7 @@ Note that remove chimeras will produce spurious results if primers have not be r
     seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=FALSE, verbose=TRUE)
 
   # Compute % of non chimeras
-    paste0("% of non chimeras : ",sum(seqtab.nochim)/sum(seqtab))
+    paste0("% of non chimeras : ",sum(seqtab.nochim)/sum(seqtab)*100)
     paste0("total number of sequences : ",sum(seqtab.nochim))
     
 ```
@@ -375,8 +375,28 @@ In our case there were no chimeras found.  It is noteworthy that the total numbe
     rownames(track) <- sample.names
     
     knitr::kable(track)  
+    write_tsv(data.frame(track), str_c(dada2_dir,"read_numbers_dada2.tsv"))
 ```
 
+### Transforming and saving the ASVs sequences
+
+In the OTU put of dada2, otu names are the sequences.  We change to give a Otuxxx name and the sequences are stored in the taxonomy table.
+
+```{r}
+  seqtab.nochim_trans <- as.data.frame(t(seqtab.nochim)) %>% 
+    rownames_to_column(var = "sequence") %>%
+    rowid_to_column(var = "OTUNumber") %>%
+    mutate(OTUNumber = sprintf("otu%04d", OTUNumber)) %>% 
+    mutate(sequence = str_replace_all(sequence, "(-|\\.)",""))
+
+  df <- seqtab.nochim_trans
+  seq_out <- Biostrings::DNAStringSet(df$sequence)
+
+  names(seq_out) <- df$OTUNumber
+
+  Biostrings::writeXStringSet(seq_out, str_c(dada2_dir, "CARBOM_ASV_no_taxo.fasta"), compress=FALSE, width = 20000)
+
+```
   
 
 ### Assigning taxonomy
@@ -401,23 +421,15 @@ This step is quite long...  If you want to skip please go to next step.
   write_tsv(as.tibble(seqtab.nochim), path = str_c(dada2_dir, "seqtab.txt"))
 ```
 
-### Changing OTU names from sequence to Otuxxxx
-
-In the OTU put of dada2, otu names are the sequences.  We change to give a Otuxxx name and the sequences are stored in the taxonomy table.
+### Appending taxonomy and boot to the sequence table
 
 ```{r}
     taxa_tax <- as.data.frame(taxa$tax)
-    taxa_boot <- as.data.frame(taxa$boot)
-
-    taxa_tax <- taxa_tax %>%  rownames_to_column(var = "sequence") %>%
-                              rowid_to_column(var = "OTUNumber") %>%
-                              mutate(OTUNumber = sprintf("otu%04d", OTUNumber))
-    row.names(taxa_tax) <- taxa_tax$OTUNumber
-    row.names(taxa_boot) <- taxa_tax$OTUNumber    
-
-  # Transpose matrix of abundance
-    seqtab.nochim_trans <- as.data.frame(t(seqtab.nochim))
-    row.names(seqtab.nochim_trans) <- taxa_tax$OTUNumber
+    taxa_boot <- as.data.frame(taxa$boot) %>% 
+      rename_all(funs(str_c(.,"_boot")))
+    seqtab.nochim_trans <- taxa_tax %>% 
+      bind_cols(taxa_boot) %>% 
+      bind_cols(seqtab.nochim_trans) 
 
 ```
 
@@ -430,27 +442,20 @@ Remember that we sequenced 3 genes (18S, 16S plastid and nifH.  We remove the se
     bootstrap_min <- 80
 
   # Filter based on the bootstrap
-    taxa_tax_18S <- taxa_tax[taxa_boot$Supergroup >= bootstrap_min,]
-    taxa_boot_18S <- taxa_boot[taxa_boot$Supergroup >= bootstrap_min,]
-
-
-
-  # Filter matrix of abundance by removing row for which Supergroup bootstrap < min
-    seqtab.nochim_18S <- seqtab.nochim_trans[taxa_boot$Supergroup >= bootstrap_min,]
+    seqtab.nochim_18S <- seqtab.nochim_trans %>%  
+      dplyr::filter(Supergroup_boot >= bootstrap_min) 
   
   # Create a database like file for dada2
-    dada2_database <-   bind_cols(taxa_tax_18S, seqtab.nochim_18S)
-    write_tsv(dada2_database, str_c(dada2_dir, "CARBOM_dada2.database.tsv"))
+    write_tsv(seqtab.nochim_18S, str_c(dada2_dir, "CARBOM_dada2.database.tsv"))
 
 ```
 
-### Write FASTA file for BLAST analysis
+### Write FASTA file for BLAST analysis with taxonomy
 
 Use the Biostrings library
 
 ```{r }
-  df <-  dada2_database %>%  mutate(sequence = str_replace_all(sequence, "(-|\\.)",""))
-
+  df <- seqtab.nochim_18S
   seq_out <- Biostrings::DNAStringSet(df$sequence)
 
   names(seq_out) <- str_c(df$OTUNumber,
@@ -516,9 +521,22 @@ blastn -max_target_seqs 100 -evalue 1.00e-10 -query $FASTA -out $BLAST_TSV -db /
 samdf <- data.frame(sample_name=sample.names)
 rownames(samdf) <- sample.names
 
-ps_dada2 <- phyloseq(otu_table(as.matrix(seqtab.nochim_18S), taxa_are_rows=TRUE), 
+OTU <- seqtab.nochim_18S %>% 
+    column_to_rownames("OTUNumber") %>% 
+    select_if(is.numeric) %>% 
+    select(-contains("_boot")) %>% 
+    as.matrix() %>% 
+    otu_table(taxa_are_rows=TRUE) 
+    
+TAX <- seqtab.nochim_18S%>% 
+  column_to_rownames("OTUNumber") %>%
+  select(Kingdom:Species)%>% 
+  as.matrix() %>%  
+  tax_table()
+
+ps_dada2 <- phyloseq(OTU, 
                sample_data(samdf), 
-               tax_table(as.matrix(select(taxa_tax_18S, - sequence, -OTUNumber))))
+               TAX)
 saveRDS(ps_dada2,str_c(dada2_dir, "CARBOM_phyloseq.rds"))
 ```
 

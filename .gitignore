@@ -26,4 +26,5 @@ dada2/taxa.txt
 dada2/taxa_boot.txt
 *.Rproj
 *cache
+*latex*
 
